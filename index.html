@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar sesión - Hackathon 2026</title>
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+  <br><br>
+  <img src="img/titulo.png" alt="Sistema de evaluacion" class="logo">
+
+  <div class="general">
+    <img src="img/Debate.png" alt="Imagen de fondo">
+    
+    <div class="formulario">
+      <br><br>
+      <h1>Iniciar sesión</h1>
+      <br><br>
+      <form method="post" action="" id="login-form">
+        <label for="usuario">Usuario / Email: </label>
+        <input type="text" id="usuario" name="usuario" placeholder="ejemplo@escuela.edu.ar" required>
+        <br><br>
+
+        <label for="contrasena">Contraseña: </label>
+        <input type="password" id="contrasena" name="contrasena" required>
+        <br><br>
+        <button type="submit">Siguiente</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- SDK de Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = "https://lunpcumjmkbetdccsmuo.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1bnBjdW1qbWtiZXRkY2NzbXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODc1MjcsImV4cCI6MjEwNzU2MzUyN30.MyP9ADhCM8LBP7jvtRs-rUX1n-MYShBMA5qtFRMH3Xc";
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    document.getElementById("login-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("usuario").value.trim();
+      const pass  = document.getElementById("contrasena").value;
+
+      const { data, error } = await db
+        .from("usuarios")
+        .select("id_usuario, nombre, apellido, rol")
+        .eq("email", email)
+        .eq("password_hash", pass)
+        .maybeSingle();
+
+      if (error || !data) {
+        alert("Usuario o contraseña incorrectos.");
+        return;
+      }
+
+      sessionStorage.setItem("usuario", JSON.stringify(data));
+
+      if (data.rol === "coordinador") {
+        location.href = "admin.html";
+      } else if (data.rol === "jurado") {
+        location.href = "jurado.html";
+      } else {
+        location.href = "alumno.html";
+      }
+    });
+  </script>
+</body>
+</html>

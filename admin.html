@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración - Gestión de Hackathon</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    :root {
+      --bg: #0b1329; --surface: #132247; --surface-border: #1e3a75;
+      --input-bg: #091024; --brand: #2563eb; --brand-hover: #1d4ed8;
+      --text: #f8fafc; --text-muted: #94a3b8; --green: #10b981; --danger: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', system-ui, sans-serif; background-color: var(--bg); color: var(--text); padding: 30px 20px; }
+    .wrapper { max-width: 950px; margin: 0 auto; }
+    .header-bar, .card {
+      background: var(--surface); border: 1px solid var(--surface-border); border-radius: 12px; padding: 24px; margin-bottom: 24px;
+    }
+    .header-bar { display: flex; justify-content: space-between; align-items: center; padding: 20px 28px; }
+    h2 { font-size: 1.15rem; color: var(--text); margin-bottom: 16px; border-bottom: 1px solid var(--surface-border); padding-bottom: 10px; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 15px; }
+    label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; }
+    input, select { width: 100%; background: var(--input-bg); border: 1px solid var(--surface-border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 0.95rem; outline: none; }
+    input:focus, select:focus { border-color: var(--brand); }
+    .btn { background: var(--brand); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
+    .btn:hover { background: var(--brand-hover); }
+    .btn-logout { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: 600; margin-left: 10px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--surface-border); font-size: 0.9rem; }
+    th { color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+
+  <div class="wrapper">
+    <div class="header-bar">
+      <div>
+        <h1 style="font-size: 1.4rem;" id="user-greeting">Panel del Coordinador</h1>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">Configuración de Grupos, Rúbrica y Estado de Publicación</p>
+      </div>
+      <div>
+        <span style="background: rgba(37,99,235,0.2); color: #60a5fa; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 0.8rem;">COORDINADOR</span>
+        <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
+      </div>
+    </div>
+
+    <!-- 1. CREAR Y GESTIONAR GRUPOS -->
+    <div class="card">
+      <h2>1. Registrar Nuevo Grupo</h2>
+      <div class="form-grid">
+        <div>
+          <label for="grupo-nombre">Nombre del Equipo / Proyecto:</label>
+          <input type="text" id="grupo-nombre" placeholder="Ej: Grupo 1 - SIGEM">
+        </div>
+        <div>
+          <label for="grupo-jornada">Jornada de Exposición:</label>
+          <select id="grupo-jornada">
+            <option value="">Cargando jornadas...</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn" onclick="crearGrupo()">Guardar Equipo</button>
+    </div>
+
+    <!-- 2. DEFINIR RÚBRICA DE EVALUACIÓN -->
+    <div class="card">
+      <h2>2. Definir Criterios de Evaluación (Rúbrica)</h2>
+      <div class="form-grid">
+        <div style="grid-column: span 2;">
+          <label for="criterio-nombre">Nombre del Criterio:</label>
+          <input type="text" id="criterio-nombre" placeholder="Ej: Exposición Oral y Pitch">
+        </div>
+        <div>
+          <label for="criterio-max">Puntaje Máximo:</label>
+          <input type="number" id="criterio-max" placeholder="15" min="1">
+        </div>
+        <div>
+          <label for="criterio-orden">Orden en Pantalla:</label>
+          <input type="number" id="criterio-orden" placeholder="1" min="1">
+        </div>
+      </div>
+      <button class="btn" onclick="crearCriterio()">Agregar Criterio a la Rúbrica</button>
+    </div>
+
+    <!-- 3. ASIGNAR ALUMNOS A GRUPOS -->
+    <div class="card">
+      <h2>3. Asignar Alumno a un Grupo</h2>
+      <div class="form-grid">
+        <div>
+          <label for="select-asignar-grupo">Seleccionar Grupo:</label>
+          <select id="select-asignar-grupo">
+            <option value="">Cargando grupos...</option>
+          </select>
+        </div>
+        <div>
+          <label for="select-asignar-alumno">Seleccionar Alumno:</label>
+          <select id="select-asignar-alumno">
+            <option value="">Cargando alumnos...</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn" onclick="asignarAlumnoGrupo()">Vincular Alumno al Grupo</button>
+    </div>
+
+    <!-- 4. VER RANKING EN TIEMPO REAL -->
+    <div class="card">
+      <h2>4. Resultados Evaluados y Publicación</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Equipo</th>
+            <th>Promedio General</th>
+            <th>Evaluado por Jurados</th>
+            <th>Estado Competencia</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-ranking">
+          <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Cargando promedios...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://lunpcumjmkbetdccsmuo.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1bnBjdW1qbWtiZXRkY2NzbXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODc1MjcsImV4cCI6MjEwNzU2MzUyN30.MyP9ADhCM8LBP7jvtRs-rUX1n-MYShBMA5qtFRMH3Xc';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const usuarioLogueado = JSON.parse(sessionStorage.getItem("usuario"));
+    if (!usuarioLogueado || usuarioLogueado.rol !== "coordinador") {
+      alert("Acceso denegado. Debe iniciar sesión como Coordinador.");
+      window.location.href = "index.html";
+    } else {
+      document.getElementById("user-greeting").innerText = `Panel de ${usuarioLogueado.nombre} ${usuarioLogueado.apellido}`;
+    }
+
+    function cerrarSesion() {
+      sessionStorage.clear();
+      window.location.href = "index.html";
+    }
+
+    async function cargarJornadas() {
+      const { data: jornadas, error } = await _supabase.from('jornadas').select('id_jornada, fecha, turno').order('id_jornada');
+      const select = document.getElementById('grupo-jornada');
+      select.innerHTML = '';
+      if (error || !jornadas || jornadas.length === 0) {
+        select.innerHTML = '<option value="">No hay jornadas cargadas</option>';
+        return;
+      }
+      jornadas.forEach(j => {
+        select.innerHTML += `<option value="${j.id_jornada}">Jornada #${j.id_jornada} - ${j.fecha} (${j.turno})</option>`;
+      });
+    }
+
+    async function cargarCombosAsignacion() {
+      // Cargar grupos
+      const { data: grupos } = await _supabase.from('grupos').select('id_grupo, nombre');
+      const selectGrupo = document.getElementById('select-asignar-grupo');
+      selectGrupo.innerHTML = '<option value="">-- Seleccione un grupo --</option>';
+      if (grupos) {
+        grupos.forEach(g => {
+          selectGrupo.innerHTML += `<option value="${g.id_grupo}">${g.nombre}</option>`;
+        });
+      }
+
+      // Cargar alumnos
+      const { data: alumnos } = await _supabase.from('usuarios').select('id_usuario, nombre, apellido').eq('rol', 'alumno');
+      const selectAlumno = document.getElementById('select-asignar-alumno');
+      selectAlumno.innerHTML = '<option value="">-- Seleccione un alumno --</option>';
+      if (alumnos) {
+        alumnos.forEach(a => {
+          selectAlumno.innerHTML += `<option value="${a.id_usuario}">${a.nombre} ${a.apellido}</option>`;
+        });
+      }
+    }
+
+    async function crearGrupo() {
+      const nombre = document.getElementById('grupo-nombre').value.trim();
+      const idJornada = document.getElementById('grupo-jornada').value;
+      if (!nombre) return alert('Escribe el nombre del grupo.');
+      if (!idJornada) return alert('Selecciona una jornada.');
+
+      const { error } = await _supabase.from('grupos').insert([{ nombre: nombre, id_jornada: idJornada }]);
+      if (error) {
+        alert('Error al crear grupo: ' + error.message);
+      } else {
+        alert('¡Grupo creado exitosamente!');
+        document.getElementById('grupo-nombre').value = '';
+        cargarCombosAsignacion();
+        cargarRanking();
+      }
+    }
+
+    async function crearCriterio() {
+      const nombre = document.getElementById('criterio-nombre').value.trim();
+      const max = parseFloat(document.getElementById('criterio-max').value);
+      const orden = parseInt(document.getElementById('criterio-orden').value) || 1;
+      if (!nombre || !max) return alert('Completa nombre y puntaje máximo del criterio.');
+
+      const { error } = await _supabase.from('criterios_rubrica').insert([{ id_edicion: 1, nombre: nombre, puntaje_maximo: max, orden: orden }]);
+      if (error) {
+        alert('Error al guardar criterio: ' + error.message);
+      } else {
+        alert('¡Criterio agregado a la rúbrica!');
+        document.getElementById('criterio-nombre').value = '';
+        document.getElementById('criterio-max').value = '';
+        document.getElementById('criterio-orden').value = '';
+      }
+    }
+
+    async function asignarAlumnoGrupo() {
+      const idGrupo = document.getElementById('select-asignar-grupo').value;
+      const idUsuario = document.getElementById('select-asignar-alumno').value;
+
+      if (!idGrupo || !idUsuario) {
+        alert('Selecciona un grupo y un alumno.');
+        return;
+      }
+
+      const { error } = await _supabase
+        .from('grupo_integrantes')
+        .insert([{ id_grupo: idGrupo, id_usuario: idUsuario }]);
+
+      if (error) {
+        alert('Error al asignar alumno (puede que ya esté en el grupo): ' + error.message);
+      } else {
+        alert('¡Alumno asignado al grupo exitosamente!');
+      }
+    }
+
+    async function cargarRanking() {
+      const { data: ranking, error } = await _supabase.from('vista_ranking_grupos').select('*');
+      const tbody = document.getElementById('tabla-ranking');
+      tbody.innerHTML = '';
+      if (error || !ranking || ranking.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No hay calificaciones registradas por el jurado aún.</td></tr>';
+        return;
+      }
+      ranking.forEach(r => {
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${r.grupo_nombre}</strong></td>
+            <td style="color: #60a5fa; font-weight: bold;">${r.promedio_general} pts</td>
+            <td>${r.total_jurados} jurado(s)</td>
+            <td><span style="color: var(--green);">✓ En evaluación</span></td>
+          </tr>
+        `;
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      cargarJornadas();
+      cargarCombosAsignacion();
+      cargarRanking();
+    });
+  </script>
+</body>
+</html>

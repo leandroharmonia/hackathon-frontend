@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Jurado - Hackathon 2026</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="css/jurado.css">
+</head>
+<body>
+
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 id="titulo-jurado">Evaluación de Proyectos - Panel de Jurado</h2>
+            <button onclick="cerrarSesion()" style="background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid #f87171; padding: 6px 12px; border-radius: 6px; cursor: pointer;">Cerrar Sesión</button>
+        </div>
+        
+        <!-- Selección de Grupo -->
+        <div class="form-group">
+            <label for="select-grupo">Seleccione el Grupo a Evaluar:</label>
+            <select id="select-grupo" onchange="cargarIntegrantesGrupo()">
+                <option value="">-- Seleccione un grupo --</option>
+            </select>
+        </div>
+
+        <!-- Criterios de la Rúbrica -->
+        <div class="section-title">1. Calificación por Criterios</div>
+        <div id="criterios-container">
+            <p>Cargando criterios de la rúbrica...</p>
+        </div>
+
+        <!-- Defensa Individual de los Integrantes -->
+        <div class="section-title">2. Defensa Individual de Integrantes</div>
+        <div id="integrantes-container">
+            <p>Seleccione un grupo para ver sus integrantes...</p>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="btn-container">
+            <button type="button" class="btn-borrador" onclick="guardarEvaluacion('borrador')">Guardar Borrador</button>
+            <button type="button" class="btn-cerrar" onclick="guardarEvaluacion('cerrado')">Cerrar Valoración</button>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://lunpcumjmkbetdccsmuo.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1bnBjdW1qbWtiZXRkY2NzbXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODc1MjcsImV4cCI6MjEwNzU2MzUyN30.MyP9ADhCM8LBP7jvtRs-rUX1n-MYShBMA5qtFRMH3Xc";
+        const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const usuarioLogueado = JSON.parse(sessionStorage.getItem("usuario"));
+        if (!usuarioLogueado || usuarioLogueado.rol !== "jurado") {
+            alert("Acceso denegado. Debe iniciar sesión como Jurado.");
+            window.location.href = "index.html";
+        } else {
+            document.getElementById("titulo-jurado").innerText = `Panel - Evaluador: ${usuarioLogueado.nombre} ${usuarioLogueado.apellido}`;
+        }
+
+        const ID_JURADO_ACTUAL = usuarioLogueado.id_usuario;
+
+        function cerrarSesion() {
+            sessionStorage.clear();
+            window.location.href = "index.html";
+        }
+
+        async function inicializarPanel() {
+            const contenedorCriterios = document.getElementById('criterios-container');
+            const selectGrupo = document.getElementById('select-grupo');
+
+            try {
+                const { data: grupos, error: errorGrupos } = await db.from('grupos').select('*');
+                if (errorGrupos) throw errorGrupos;
+
+                if (grupos && grupos.length > 0) {
+                    selectGrupo.innerHTML = '<option value="">-- Seleccione un grupo --</option>';
+                    grupos.forEach(g => {
+                        let opt = document.createElement('option');
+                        opt.value = g.id_grupo;
+                        opt.textContent = g.nombre;
+                        selectGrupo.appendChild(opt);
+                    });
+                } else {
+                    selectGrupo.innerHTML = '<option value="">No hay grupos cargados por el coordinador</option>';
+                }
+
+                const { data: criterios, error: errorCriterios } = await db.from('criterios_rubrica').select('*').order('orden');
+                if (errorCriterios) throw errorCriterios;
+
+                if (criterios && criterios.length > 0) {
+                    contenedorCriterios.innerHTML = '';
+                    criterios.forEach(c => {
+                        contenedorCriterios.innerHTML += `
+                            <div class="criterio-card">
+                                <label>${c.orden || 1}. ${c.nombre} <span style="font-weight: normal; color: #94a3b8;">(Máx: ${c.puntaje_maximo} pts)</span></label>
+                                <input type="number" class="input-criterio" data-criterio="${c.id_criterio}" max="${c.puntaje_maximo}" min="0" step="0.5" placeholder="Puntaje obtenido">
+                            </div>
+                        `;
+                    });
+                } else {
+                    contenedorCriterios.innerHTML = '<p style="color: #f87171;">No hay criterios configurados en la rúbrica.</p>';
+                }
+            } catch (err) {
+                console.error(err);
+                contenedorCriterios.innerHTML = `<p style="color: #f87171;">Error al cargar datos: ${err.message}</p>`;
+            }
+        }
+
+        async function cargarIntegrantesGrupo() {
+            const idGrupo = document.getElementById('select-grupo').value;
+            const contenedorIntegrantes = document.getElementById('integrantes-container');
+            
+            if (!idGrupo) {
+                contenedorIntegrantes.innerHTML = '<p>Seleccione un grupo para ver sus integrantes...</p>';
+                return;
+            }
+
+            try {
+                const { data: alumnos, error } = await db
+                    .from('grupo_integrantes')
+                    .select('usuarios(id_usuario, nombre, apellido)')
+                    .eq('id_grupo', idGrupo);
+
+                if (error) throw error;
+
+                if (!alumnos || alumnos.length === 0) {
+                    contenedorIntegrantes.innerHTML = '<p style="color: #94a3b8;">No hay integrantes asignados a este grupo todavía desde el panel de administración.</p>';
+                    return;
+                }
+
+                contenedorIntegrantes.innerHTML = '';
+                alumnos.forEach(item => {
+                    const alumno = item.usuarios;
+                    if (alumno) {
+                        contenedorIntegrantes.innerHTML += `
+                            <div class="integrante-card" style="margin-bottom: 12px; padding: 10px; background: rgba(19,34,71,0.5); border-radius: 6px;">
+                                <label style="font-weight: bold; color: #f8fafc;">${alumno.nombre} ${alumno.apellido}</label>
+                                <input type="number" class="input-defensa" data-alumno="${alumno.id_usuario}" placeholder="Puntaje de defensa individual (Máx: 10)" max="10" min="0" step="0.5" style="margin-top: 6px; width: 100%; padding: 8px; background: #091024; border: 1px solid #1e3a75; color: #fff; border-radius: 6px;">
+                            </div>
+                        `;
+                    }
+                });
+            } catch (error) {
+                console.error('Error al cargar integrantes:', error.message);
+                contenedorIntegrantes.innerHTML = `<p style="color: #f87171;">Error al cargar integrantes: ${error.message}</p>`;
+            }
+        }
+
+        async function guardarEvaluacion(estado) {
+            const idGrupo = document.getElementById('select-grupo').value;
+            if (!idGrupo) {
+                alert('Por favor, seleccione un grupo antes de guardar.');
+                return;
+            }
+
+            const inputsCriterios = document.querySelectorAll('.input-criterio');
+            let detalles = [];
+            let errorValidacion = false;
+
+            inputsCriterios.forEach(input => {
+                const puntaje = parseFloat(input.value);
+                const max = parseFloat(input.max);
+                const idCriterio = input.getAttribute('data-criterio');
+
+                if (isNaN(puntaje) || puntaje < 0 || puntaje > max) {
+                    errorValidacion = true;
+                }
+                detalles.push({ id_criterio: idCriterio, puntaje: isNaN(puntaje) ? 0 : puntaje });
+            });
+
+            if (errorValidacion) {
+                alert('Revise los puntajes de los criterios. Algunos superan el máximo permitido o están vacíos.');
+                return;
+            }
+
+            try {
+                const { data: evalData, error: evalError } = await db
+                    .from('evaluaciones')
+                    .insert([{ id_grupo: idGrupo, id_jurado: ID_JURADO_ACTUAL, estado: estado }])
+                    .select()
+                    .single();
+
+                if (evalError) throw evalError;
+                const idEvaluacion = evalData.id_evaluacion;
+
+                const detallesConEval = detalles.map(d => ({
+                    id_evaluacion: idEvaluacion,
+                    id_criterio: d.id_criterio,
+                    puntaje: d.puntaje
+                }));
+
+                const { error: detalleError } = await db.from('evaluacion_detalle').insert(detallesConEval);
+                if (detalleError) throw detalleError;
+
+                alert(`¡Evaluación guardada exitosamente como "${estado}"!`);
+                location.reload();
+            } catch (error) {
+                console.error('Error al guardar la evaluación:', error.message);
+                alert('Ocurrió un error al registrar la evaluación: ' + error.message);
+            }
+        }
+
+        window.onload = inicializarPanel;
+    </script>
+</body>
+</html>

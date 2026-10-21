@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluación grupal</title>
+    <link rel="stylesheet" href="notas.css">
+    <!-- SDK de Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div class="texto">
+    <div class="titulos">
+        <h3>SISTEMA DE EVALUACIÓN</h3>
+        <h1>Evaluación grupal</h1>
+        <h4 id="nombre-grupo">Actividad: Cargando equipo...</h4>
+    </div>
+
+    <h3>Puntaje individual</h3>
+    <div id="puntajes-individuales" class="puntajesi">
+        <p>Cargando integrantes...</p>
+    </div>
+
+    <h3>Puntaje grupal</h3>
+    <div id="puntaje-grupal" class="puntajesg">
+        <p>Buscando calificaciones de los jurados...</p>
+    </div>
+
+    <div style="margin-top: 25px;">
+        <button onclick="cerrarSesion()" style="background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid #f87171; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">Cerrar Sesión</button>
+    </div>
+</div>
+
+<img src="img/Grupos.jpg" alt="Imagen de fondo" class="imagen-fondo">
+
+<script>
+    const SUPABASE_URL = "https://lunpcumjmkbetdccsmuo.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1bnBjdW1qbWtiZXRkY2NzbXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODc1MjcsImV4cCI6MjEwNzU2MzUyN30.MyP9ADhCM8LBP7jvtRs-rUX1n-MYShBMA5qtFRMH3Xc";
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const usuarioLogueado = JSON.parse(sessionStorage.getItem("usuario"));
+    if (!usuarioLogueado || usuarioLogueado.rol !== "alumno") {
+        alert("Acceso denegado. Debe iniciar sesión como Alumno.");
+        window.location.href = "index.html";
+    }
+
+    function cerrarSesion() {
+        sessionStorage.clear();
+        window.location.href = "index.html";
+    }
+
+    async function cargarDatosAlumno() {
+        const divIndividuales = document.getElementById('puntajes-individuales');
+        const divGrupal = document.getElementById('puntaje-grupal');
+        const h4Grupo = document.getElementById('nombre-grupo');
+
+        try {
+            const { data: relGrupo, error: errRel } = await db
+                .from('grupo_integrantes')
+                .select('id_grupo, grupos(nombre)')
+                .eq('id_usuario', usuarioLogueado.id_usuario)
+                .maybeSingle();
+
+            if (errRel || !relGrupo) {
+                h4Grupo.textContent = "Actividad: Sin grupo asignado";
+                divIndividuales.innerHTML = '<p style="color: #f87171;">No estás asignado a ningún grupo todavía.</p>';
+                divGrupal.innerHTML = '<p style="color: #f87171;">Sin calificaciones disponibles.</p>';
+                return;
+            }
+
+            const idGrupo = relGrupo.id_grupo;
+            h4Grupo.textContent = `Actividad: Evaluaciones para el equipo "${relGrupo.grupos.nombre}"`;
+
+            const { data: evaluaciones, error: errEval } = await db
+                .from('evaluaciones')
+                .select('id_evaluacion, estado, usuarios(nombre, apellido)')
+                .eq('id_grupo', idGrupo);
+
+            if (errEval) throw errEval;
+
+            if (!evaluaciones || evaluaciones.length === 0) {
+                divGrupal.innerHTML = '<p style="color: #94a3b8;">Tu equipo aún no ha recibido calificaciones de los jurados.</p>';
+            } else {
+                divGrupal.innerHTML = '';
+                for (let ev of evaluaciones) {
+                    const nombreJurado = ev.usuarios ? `${ev.usuarios.nombre} ${ev.usuarios.apellido}` : 'Jurado';
+                    
+                    const { data: detalles } = await db
+                        .from('evaluacion_detalle')
+                        .select('puntaje, criterios_rubrica(nombre, puntaje_maximo)')
+                        .eq('id_evaluacion', ev.id_evaluacion);
+
+                    let htmlCriterios = '';
+                    let sumaTotal = 0;
+                    if (detalles) {
+                        detalles.forEach(d => {
+                            sumaTotal += d.puntaje;
+                            htmlCriterios += `<div style="margin: 4px 0;">• ${d.criterios_rubrica.nombre}: <strong>${d.puntaje}</strong> / ${d.criterios_rubrica.puntaje_maximo} pts</div>`;
+                        });
+                    }
+
+                    divGrupal.innerHTML += `
+                        <div style="background: rgba(19, 34, 71, 0.9); border: 1px solid #1e3a75; padding: 12px; border-radius: 8px; margin-bottom: 10px; color: #fff;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                <strong style="color: #60a5fa;">Jurado: ${nombreJurado}</strong>
+                                <span style="font-size: 0.8rem; background: rgba(16,185,129,0.2); color: #34d399; padding: 2px 6px; border-radius: 4px;">${ev.estado}</span>
+                            </div>
+                            <div style="font-size: 0.9rem;">${htmlCriterios}</div>
+                            <div style="margin-top: 6px; text-align: right; font-weight: bold; color: #38bdf8;">
+                                Total Parcial: ${sumaTotal} pts
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            const { data: integrantes, error: errInt } = await db
+                .from('grupo_integrantes')
+                .select('usuarios(id_usuario, nombre, apellido)')
+                .eq('id_grupo', idGrupo);
+
+            if (errInt) throw errInt;
+
+            if (!integrantes || integrantes.length === 0) {
+                divIndividuales.innerHTML = '<p style="color: #94a3b8;">No hay integrantes registrados en el grupo.</p>';
+            } else {
+                divIndividuales.innerHTML = '';
+                integrantes.forEach(item => {
+                    const alumno = item.usuarios;
+                    if (alumno) {
+                        const esYo = alumno.id_usuario === usuarioLogueado.id_usuario;
+                        divIndividuales.innerHTML += `
+                            <div style="background: rgba(19, 34, 71, 0.9); border: 1px solid #1e3a75; padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; color: #fff; display: flex; justify-content: space-between; align-items: center;">
+                                <span>${alumno.nombre} ${alumno.apellido}</span>
+                                ${esYo ? '<span style="background: rgba(59,130,246,0.2); color: #60a5fa; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">Tú</span>' : ''}
+                            </div>
+                        `;
+                    }
+                });
+            }
+        } catch (error) {
+            console.error("Error al cargar calificaciones del alumno:", error);
+            divGrupal.innerHTML = '<p style="color: #f87171;">Ocurrió un error al cargar las notas.</p>';
+        }
+    }
+
+    window.onload = cargarDatosAlumno;
+</script>
+
+</body>
+</html>
