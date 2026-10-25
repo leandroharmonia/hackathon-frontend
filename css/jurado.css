@@ -1,0 +1,97 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #070d1d; /* Estética oscura similar al login */
+    color: #e2e8f0;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 800px;
+    margin: auto;
+    background: #0f172a;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    border: 1px solid #1e293b;
+}
+
+h2 {
+    text-align: center;
+    color: #f8fafc;
+    margin-bottom: 25px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #cbd5e1;
+}
+
+select, input[type="number"], textarea {
+    width: 100%;
+    padding: 12px;
+    box-sizing: border-box;
+    background-color: #070d1d;
+    border: 1px solid #334155;
+    color: #fff;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+select:focus, input:focus, textarea:focus {
+    border-color: #3b82f6;
+    outline: none;
+}
+
+.section-title {
+    margin-top: 30px;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #1e293b;
+    padding-bottom: 5px;
+    color: #60a5fa;
+}
+
+.criterio-card, .integrante-card {
+    background: #1e293b;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #3b82f6;
+}
+
+.btn-container {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+button {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 15px;
+    transition: opacity 0.2s;
+}
+
+.btn-borrador {
+    background-color: #d97706;
+    color: #fff;
+}
+
+.btn-cerrar {
+    background-color: #16a34a;
+    color: #fff;
+}
+
+button:hover {
+    opacity: 0.9;
+}

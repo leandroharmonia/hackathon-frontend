@@ -1,0 +1,44 @@
+
+body {
+    margin: 0;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background-color: white;
+    color: #12345a;
+}
+
+.texto {
+    width: 55%;
+    padding: 20px;
+}
+
+.titulos {
+    background-color: #d9efff;
+    padding: 15px;
+    border-radius: 10px;
+}
+
+h1 {
+    color: #12345a;
+}
+
+h3 {
+    color: #168ac4;
+}
+
+.puntajesi, .puntajesg {
+    background-color: #eef8ff;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border-left: 5px solid #168ac4;
+}
+
+.imagen-fondo {
+    position: absolute;
+    right: 20px;
+    top: 100px;
+    width: 38%;
+    height: auto;
+    border-radius: 10px;
+}
