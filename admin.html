@@ -157,7 +157,6 @@
     }
 
     async function cargarCombosAsignacion() {
-      // Cargar grupos
       const { data: grupos } = await _supabase.from('grupos').select('id_grupo, nombre');
       const selectGrupo = document.getElementById('select-asignar-grupo');
       selectGrupo.innerHTML = '<option value="">-- Seleccione un grupo --</option>';
@@ -167,7 +166,6 @@
         });
       }
 
-      // Cargar alumnos
       const { data: alumnos } = await _supabase.from('usuarios').select('id_usuario, nombre, apellido').eq('rol', 'alumno');
       const selectAlumno = document.getElementById('select-asignar-alumno');
       selectAlumno.innerHTML = '<option value="">-- Seleccione un alumno --</option>';
@@ -201,7 +199,6 @@
       const orden = parseInt(document.getElementById('criterio-orden').value) || 1;
       if (!nombre || !max) return alert('Completa nombre y puntaje máximo del criterio.');
 
-      // Obtener dinámicamente la edición existente en la base de datos
       const { data: edicion, error: errEdicion } = await _supabase
         .from('ediciones')
         .select('id_edicion')
@@ -232,16 +229,17 @@
 
     async function asignarAlumnoGrupo() {
       const idGrupo = document.getElementById('select-asignar-grupo').value;
-      const idUsuario = document.getElementById('select-asignar-alumno').value;
+      const idAlumno = document.getElementById('select-asignar-alumno').value;
 
-      if (!idGrupo || !idUsuario) {
+      if (!idGrupo || !idAlumno) {
         alert('Selecciona un grupo y un alumno.');
         return;
       }
 
+      // Corregido: utilizando id_alumno en lugar de id_usuario
       const { error } = await _supabase
         .from('grupo_integrantes')
-        .insert([{ id_grupo: idGrupo, id_usuario: idUsuario }]);
+        .insert([{ id_grupo: idGrupo, id_alumno: idAlumno }]);
 
       if (error) {
         alert('Error al asignar alumno (puede que ya esté en el grupo): ' + error.message);

@@ -114,9 +114,10 @@
             }
 
             try {
+                // Consulta adaptada utilizando id_alumno para la relación con usuarios
                 const { data: alumnos, error } = await db
                     .from('grupo_integrantes')
-                    .select('usuarios(id_usuario, nombre, apellido)')
+                    .select('id_alumno, usuarios!grupo_integrantes_id_alumno_fkey(id_usuario, nombre, apellido)')
                     .eq('id_grupo', idGrupo);
 
                 if (error) throw error;
