@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -42,6 +42,7 @@
       const email = document.getElementById("usuario").value.trim();
       const pass  = document.getElementById("contrasena").value;
 
+      // Consulta validando el correo y la columna password_hash
       const { data, error } = await db
         .from("usuarios")
         .select("id_usuario, nombre, apellido, rol")
