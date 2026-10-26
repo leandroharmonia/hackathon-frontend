@@ -201,7 +201,25 @@
       const orden = parseInt(document.getElementById('criterio-orden').value) || 1;
       if (!nombre || !max) return alert('Completa nombre y puntaje máximo del criterio.');
 
-      const { error } = await _supabase.from('criterios_rubrica').insert([{ id_edicion: 1, nombre: nombre, puntaje_maximo: max, orden: orden }]);
+      // Obtener dinámicamente la edición existente en la base de datos
+      const { data: edicion, error: errEdicion } = await _supabase
+        .from('ediciones')
+        .select('id_edicion')
+        .limit(1)
+        .maybeSingle();
+
+      if (errEdicion || !edicion) {
+        alert('Error: No se encontró ninguna edición registrada en la base de datos.');
+        return;
+      }
+
+      const { error } = await _supabase.from('criterios_rubrica').insert([{ 
+        id_edicion: edicion.id_edicion, 
+        nombre: nombre, 
+        puntaje_maximo: max, 
+        orden: orden 
+      }]);
+
       if (error) {
         alert('Error al guardar criterio: ' + error.message);
       } else {
