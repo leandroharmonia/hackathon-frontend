@@ -10,7 +10,7 @@
 
 :root {
     /* PEGA AQUÍ TU IMAGEN DE FONDO */
-    --imagen-fondo: url('jurado.jpg');
+    --imagen-fondo: url('../img/jurado.jpg');
     
     /* Capa oscura superior para mantener la legibilidad del texto */
     --superposicion-oscura: linear-gradient(rgba(7, 13, 29, 0.82), rgba(7, 13, 29, 0.88));
