@@ -1,25 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #070d1d; /* Estética oscura similar al login */
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    /* Fondo con imagen de tecnología y superposición oscura */
+    background: linear-gradient(rgba(7, 13, 29, 0.88), rgba(7, 13, 29, 0.92)), 
+                url('https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed;
+    background-size: cover;
     color: #e2e8f0;
     margin: 0;
-    padding: 20px;
+    padding: 40px 20px;
+    min-height: 100vh;
+}
+
+/* Botón de cerrar sesión ubicado en la esquina superior derecha */
+.btn-logout-top {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(248, 113, 113, 0.4);
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+    z-index: 1000;
+}
+
+.btn-logout-top:hover {
+    background: rgba(239, 68, 68, 0.3);
+    border-color: #f87171;
+    transform: translateY(-1px);
 }
 
 .container {
-    max-width: 800px;
+    max-width: 850px;
     margin: auto;
-    background: #0f172a;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-    border: 1px solid #1e293b;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(12px);
+    padding: 35px;
+    border-radius: 16px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(51, 65, 85, 0.6);
 }
 
-h2 {
+/* Nuevo estilo impactante para el título del panel */
+.titulo-evaluador {
+    font-size: 1.6rem;
+    font-weight: 800;
     text-align: center;
-    color: #f8fafc;
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #93c5fd 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
     margin-bottom: 25px;
+    letter-spacing: -0.5px;
+    text-shadow: 0 4px 20px rgba(59, 130, 246, 0.2);
 }
 
 .form-group {
@@ -29,6 +67,7 @@ h2 {
 label {
     display: block;
     font-weight: 600;
+    font-size: 0.9rem;
     margin-bottom: 8px;
     color: #cbd5e1;
 }
@@ -40,28 +79,32 @@ select, input[type="number"], textarea {
     background-color: #070d1d;
     border: 1px solid #334155;
     color: #fff;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 14px;
+    transition: border-color 0.2s;
 }
 
 select:focus, input:focus, textarea:focus {
     border-color: #3b82f6;
     outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
 .section-title {
     margin-top: 30px;
     margin-bottom: 15px;
     border-bottom: 2px solid #1e293b;
-    padding-bottom: 5px;
+    padding-bottom: 8px;
     color: #60a5fa;
+    font-weight: 700;
+    font-size: 1.1rem;
 }
 
 .criterio-card, .integrante-card {
-    background: #1e293b;
-    padding: 15px;
+    background: rgba(30, 41, 59, 0.7);
+    padding: 16px;
     margin-bottom: 15px;
-    border-radius: 8px;
+    border-radius: 10px;
     border-left: 4px solid #3b82f6;
 }
 
@@ -71,15 +114,15 @@ select:focus, input:focus, textarea:focus {
     margin-top: 30px;
 }
 
-button {
+button.btn-borrador, button.btn-cerrar {
     flex: 1;
     padding: 14px;
     border: none;
     font-weight: bold;
     cursor: pointer;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 15px;
-    transition: opacity 0.2s;
+    transition: all 0.2s ease;
 }
 
 .btn-borrador {
@@ -93,5 +136,6 @@ button {
 }
 
 button:hover {
-    opacity: 0.9;
+    opacity: 0.92;
+    transform: translateY(-1px);
 }

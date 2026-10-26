@@ -4,16 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Jurado - Hackathon 2026</title>
+    <!-- Enlace de la fuente Inter para mantener el estilo moderno -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="css/jurado.css">
 </head>
 <body>
 
+    <!-- Botón de Cerrar Sesión fijo en la esquina superior derecha -->
+    <button onclick="cerrarSesion()" class="btn-logout-top">🚪 Cerrar Sesión</button>
+
     <div class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 id="titulo-jurado">Evaluación de Proyectos - Panel de Jurado</h2>
-            <button onclick="cerrarSesion()" style="background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid #f87171; padding: 6px 12px; border-radius: 6px; cursor: pointer;">Cerrar Sesión</button>
-        </div>
+        <!-- Título con diseño moderno y degradado -->
+        <h2 id="titulo-jurado" class="titulo-evaluador">Evaluación de Proyectos - Panel de Jurado</h2>
         
         <!-- Selección de Grupo -->
         <div class="form-group">
@@ -114,7 +117,6 @@
             }
 
             try {
-                // Consulta adaptada utilizando id_alumno para la relación con usuarios
                 const { data: alumnos, error } = await db
                     .from('grupo_integrantes')
                     .select('id_alumno, usuarios!grupo_integrantes_id_alumno_fkey(id_usuario, nombre, apellido)')
