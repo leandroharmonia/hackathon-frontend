@@ -56,32 +56,33 @@ body {
     margin-bottom: 20px;
 }
 
-/* Etiquetas más grandes y destacadas */
+/* Etiquetas grandes y de color negro */
 label {
     display: block;
     font-weight: 700;
-    font-size: 1.05rem; /* Letras un poco más grandes */
+    font-size: 1.05rem;
     margin-bottom: 8px;
-    color: #1e3a8a; /* Azul oscuro para que resalte muy bien */
+    color: #000000; /* Color negro puro para las etiquetas */
 }
 
-/* Campos desplegables y de texto con fondo NEGRO y letras BLANCAS */
+/* Campos desplegables y de texto con fondo GRIS y letras oscuras */
 select, input[type="number"], textarea {
     width: 100%;
     padding: 12px;
     box-sizing: border-box;
-    background-color: #000000; /* Fondo negro sólido */
-    border: 1px solid #475569;
-    color: #ffffff; /* Texto blanco para que contraste y se lea perfecto */
+    background-color: #f1f5f9; /* Fondo gris claro moderno */
+    border: 1px solid #94a3b8;
+    color: #0f172a; /* Letras oscuras legibles */
     border-radius: 8px;
     font-size: 14px;
     transition: border-color 0.2s;
 }
 
 select:focus, input:focus, textarea:focus {
-    border-color: #60a5fa;
+    border-color: #2563eb;
     outline: none;
-    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25);
+    background-color: #ffffff; /* Se aclaran un poco al hacer clic para editar */
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 .section-title {
