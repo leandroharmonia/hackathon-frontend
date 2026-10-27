@@ -2,19 +2,8 @@
 
 body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    
-    /* Fondo con imagen y capa oscura semitransparente para legibilidad */
-    /* IMPORTANTE: Si tu imagen se llama diferente o está en otra carpeta, ajusta la ruta aquí */
-    background-image: linear-gradient(rgba(11, 19, 41, 0.70), rgba(11, 19, 41, 0.80)), 
-                      url('../img/Debate.png');
-    
-    background-position: center center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    background-size: cover;
-    background-color: #0b1329;
-    
-    color: #e2e8f0;
+    background-color: #f8fafc; /* Fondo blanco/gris muy claro y moderno */
+    color: #1e293b; /* Texto oscuro para buena lectura */
     margin: 0;
     padding: 40px 20px;
     min-height: 100vh;
@@ -25,9 +14,9 @@ body {
     position: fixed;
     top: 20px;
     right: 20px;
-    background: rgba(239, 68, 68, 0.15);
-    color: #f87171;
-    border: 1px solid rgba(248, 113, 113, 0.4);
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.3);
     padding: 8px 14px;
     border-radius: 20px;
     font-size: 0.82rem;
@@ -39,35 +28,32 @@ body {
 }
 
 .btn-logout-top:hover {
-    background: rgba(239, 68, 68, 0.3);
-    border-color: #f87171;
+    background: rgba(239, 68, 68, 0.2);
+    border-color: #dc2626;
     transform: translateY(-1px);
 }
 
 .container {
     max-width: 850px;
     margin: auto;
-    /* Contenedor principal con tono más claro */
-    background: rgba(30, 41, 59, 0.85);
-    backdrop-filter: blur(12px);
+    background: #ffffff; /* Contenedor blanco puro */
     padding: 35px;
     border-radius: 16px;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
-    border: 1px solid rgba(71, 85, 105, 0.7);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
 }
 
-/* Título del panel con degradado más claro */
+/* Título del panel */
 .titulo-evaluador {
     font-size: 1.6rem;
     font-weight: 800;
     text-align: center;
-    background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 50%, #bfdbfe 100%);
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 25px;
     letter-spacing: -0.5px;
-    text-shadow: 0 4px 20px rgba(96, 165, 250, 0.3);
 }
 
 .form-group {
@@ -79,43 +65,44 @@ label {
     font-weight: 600;
     font-size: 0.9rem;
     margin-bottom: 8px;
-    color: #e2e8f0;
+    color: #334155;
 }
 
 select, input[type="number"], textarea {
     width: 100%;
     padding: 12px;
     box-sizing: border-box;
-    background-color: #0b1329;
-    border: 1px solid #475569;
-    color: #fff;
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1;
+    color: #0f172a;
     border-radius: 8px;
     font-size: 14px;
     transition: border-color 0.2s;
 }
 
 select:focus, input:focus, textarea:focus {
-    border-color: #60a5fa;
+    border-color: #2563eb;
     outline: none;
-    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 .section-title {
     margin-top: 30px;
     margin-bottom: 15px;
-    border-bottom: 2px solid #334155;
+    border-bottom: 2px solid #f1f5f9;
     padding-bottom: 8px;
-    color: #93c5fd;
+    color: #1d4ed8;
     font-weight: 700;
     font-size: 1.1rem;
 }
 
 .criterio-card, .integrante-card {
-    background: rgba(51, 65, 85, 0.65);
+    background: #f8fafc;
     padding: 16px;
     margin-bottom: 15px;
     border-radius: 10px;
-    border-left: 4px solid #60a5fa;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #2563eb;
 }
 
 .btn-container {
