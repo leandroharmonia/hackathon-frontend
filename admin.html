@@ -7,51 +7,29 @@
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    :root {
-      --bg: #0b1329; --surface: #132247; --surface-border: #1e3a75;
-      --input-bg: #091024; --brand: #2563eb; --brand-hover: #1d4ed8;
-      --text: #f8fafc; --text-muted: #94a3b8; --green: #10b981; --danger: #ef4444;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', system-ui, sans-serif; background-color: var(--bg); color: var(--text); padding: 30px 20px; }
-    .wrapper { max-width: 950px; margin: 0 auto; }
-    .header-bar, .card {
-      background: var(--surface); border: 1px solid var(--surface-border); border-radius: 12px; padding: 24px; margin-bottom: 24px;
-    }
-    .header-bar { display: flex; justify-content: space-between; align-items: center; padding: 20px 28px; }
-    h2 { font-size: 1.15rem; color: var(--text); margin-bottom: 16px; border-bottom: 1px solid var(--surface-border); padding-bottom: 10px; }
-    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 15px; }
-    label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; }
-    input, select { width: 100%; background: var(--input-bg); border: 1px solid var(--surface-border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 0.95rem; outline: none; }
-    input:focus, select:focus { border-color: var(--brand); }
-    .btn { background: var(--brand); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
-    .btn:hover { background: var(--brand-hover); }
-    .btn-logout { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: 600; margin-left: 10px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--surface-border); font-size: 0.9rem; }
-    th { color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; }
-  </style>
+  <!-- Enlace al archivo CSS externo unificado -->
+  <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
 
-  <div class="wrapper">
-    <div class="header-bar">
+  <!-- Botón de cerrar sesión flotante superior -->
+  <button class="btn-logout-top" onclick="cerrarSesion()">Cerrar Sesión</button>
+
+  <div class="container">
+    <div class="header-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
       <div>
-        <h1 style="font-size: 1.4rem;" id="user-greeting">Panel del Coordinador</h1>
-        <p style="font-size: 0.85rem; color: var(--text-muted);">Configuración de Grupos, Rúbrica y Estado de Publicación</p>
+        <h1 class="titulo-admin" style="text-align: left; margin-bottom: 5px;" id="user-greeting">Panel del Coordinador</h1>
+        <p style="font-size: 0.9rem; color: #475569;">Configuración de Grupos, Rúbrica y Estado de Publicación</p>
       </div>
       <div>
-        <span style="background: rgba(37,99,235,0.2); color: #60a5fa; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 0.8rem;">COORDINADOR</span>
-        <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
+        <span style="background: #dbeafe; color: #1e3a8a; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; border: 1px solid #93c5fd;">COORDINADOR</span>
       </div>
     </div>
 
     <!-- 1. CREAR Y GESTIONAR GRUPOS -->
-    <div class="card">
-      <h2>1. Registrar Nuevo Grupo</h2>
-      <div class="form-grid">
+    <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
+      <h2 class="section-title" style="margin-top: 0;">1. Registrar Nuevo Grupo</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 15px;">
         <div>
           <label for="grupo-nombre">Nombre del Equipo / Proyecto:</label>
           <input type="text" id="grupo-nombre" placeholder="Ej: Grupo 1 - SIGEM">
@@ -63,13 +41,13 @@
           </select>
         </div>
       </div>
-      <button class="btn" onclick="crearGrupo()">Guardar Equipo</button>
+      <button class="btn" style="background-color: #2563eb; color: #fff; width: auto; padding: 10px 20px;" onclick="crearGrupo()">Guardar Equipo</button>
     </div>
 
     <!-- 2. DEFINIR RÚBRICA DE EVALUACIÓN -->
-    <div class="card">
-      <h2>2. Definir Criterios de Evaluación (Rúbrica)</h2>
-      <div class="form-grid">
+    <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
+      <h2 class="section-title" style="margin-top: 0;">2. Definir Criterios de Evaluación (Rúbrica)</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px;">
         <div style="grid-column: span 2;">
           <label for="criterio-nombre">Nombre del Criterio:</label>
           <input type="text" id="criterio-nombre" placeholder="Ej: Exposición Oral y Pitch">
@@ -83,13 +61,13 @@
           <input type="number" id="criterio-orden" placeholder="1" min="1">
         </div>
       </div>
-      <button class="btn" onclick="crearCriterio()">Agregar Criterio a la Rúbrica</button>
+      <button class="btn" style="background-color: #2563eb; color: #fff; width: auto; padding: 10px 20px;" onclick="crearCriterio()">Agregar Criterio a la Rúbrica</button>
     </div>
 
     <!-- 3. ASIGNAR ALUMNOS A GRUPOS -->
-    <div class="card">
-      <h2>3. Asignar Alumno a un Grupo</h2>
-      <div class="form-grid">
+    <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
+      <h2 class="section-title" style="margin-top: 0;">3. Asignar Alumno a un Grupo</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 15px;">
         <div>
           <label for="select-asignar-grupo">Seleccionar Grupo:</label>
           <select id="select-asignar-grupo">
@@ -103,12 +81,12 @@
           </select>
         </div>
       </div>
-      <button class="btn" onclick="asignarAlumnoGrupo()">Vincular Alumno al Grupo</button>
+      <button class="btn" style="background-color: #2563eb; color: #fff; width: auto; padding: 10px 20px;" onclick="asignarAlumnoGrupo()">Vincular Alumno al Grupo</button>
     </div>
 
     <!-- 4. VER RANKING EN TIEMPO REAL -->
-    <div class="card">
-      <h2>4. Resultados Evaluados y Publicación</h2>
+    <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd;">
+      <h2 class="section-title" style="margin-top: 0;">4. Resultados Evaluados y Publicación</h2>
       <table>
         <thead>
           <tr>
@@ -119,7 +97,7 @@
           </tr>
         </thead>
         <tbody id="tabla-ranking">
-          <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Cargando promedios...</td></tr>
+          <tr><td colspan="4" style="text-align: center; color: #64748b;">Cargando promedios...</td></tr>
         </tbody>
       </table>
     </div>
@@ -199,24 +177,7 @@
       const orden = parseInt(document.getElementById('criterio-orden').value) || 1;
       if (!nombre || !max) return alert('Completa nombre y puntaje máximo del criterio.');
 
-      const { data: edicion, error: errEdicion } = await _supabase
-        .from('ediciones')
-        .select('id_edicion')
-        .limit(1)
-        .maybeSingle();
-
-      if (errEdicion || !edicion) {
-        alert('Error: No se encontró ninguna edición registrada en la base de datos.');
-        return;
-      }
-
-      const { error } = await _supabase.from('criterios_rubrica').insert([{ 
-        id_edicion: edicion.id_edicion, 
-        nombre: nombre, 
-        puntaje_maximo: max, 
-        orden: orden 
-      }]);
-
+      const { error } = await _supabase.from('criterios_rubrica').insert([{ id_edicion: 1, nombre: nombre, puntaje_maximo: max, orden: orden }]);
       if (error) {
         alert('Error al guardar criterio: ' + error.message);
       } else {
@@ -229,17 +190,16 @@
 
     async function asignarAlumnoGrupo() {
       const idGrupo = document.getElementById('select-asignar-grupo').value;
-      const idAlumno = document.getElementById('select-asignar-alumno').value;
+      const idUsuario = document.getElementById('select-asignar-alumno').value;
 
-      if (!idGrupo || !idAlumno) {
+      if (!idGrupo || !idUsuario) {
         alert('Selecciona un grupo y un alumno.');
         return;
       }
 
-      // Corregido: utilizando id_alumno en lugar de id_usuario
       const { error } = await _supabase
         .from('grupo_integrantes')
-        .insert([{ id_grupo: idGrupo, id_alumno: idAlumno }]);
+        .insert([{ id_grupo: idGrupo, id_usuario: idUsuario }]);
 
       if (error) {
         alert('Error al asignar alumno (puede que ya esté en el grupo): ' + error.message);
@@ -253,16 +213,16 @@
       const tbody = document.getElementById('tabla-ranking');
       tbody.innerHTML = '';
       if (error || !ranking || ranking.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No hay calificaciones registradas por el jurado aún.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #64748b;">No hay calificaciones registradas por el jurado aún.</td></tr>';
         return;
       }
       ranking.forEach(r => {
         tbody.innerHTML += `
           <tr>
             <td><strong>${r.grupo_nombre}</strong></td>
-            <td style="color: #60a5fa; font-weight: bold;">${r.promedio_general} pts</td>
+            <td style="color: #2563eb; font-weight: bold;">${r.promedio_general} pts</td>
             <td>${r.total_jurados} jurado(s)</td>
-            <td><span style="color: var(--green);">✓ En evaluación</span></td>
+            <td><span style="color: #16a34a; font-weight: bold;">✓ En evaluación</span></td>
           </tr>
         `;
       });
