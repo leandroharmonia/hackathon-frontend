@@ -2,14 +2,14 @@
 
 body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background-color: #ffffff; /* Fondo blanco sólido y opaco */
-    color: #1e293b; /* Texto oscuro bien legible */
+    background-color: #ffffff; /* Fondo general blanco sólido */
+    color: #1e293b;
     margin: 0;
     padding: 40px 20px;
     min-height: 100vh;
 }
 
-/* Botón de cerrar sesión ubicado en la esquina superior derecha */
+/* Botón de cerrar sesión en la esquina superior derecha */
 .btn-logout-top {
     position: fixed;
     top: 20px;
@@ -31,22 +31,23 @@ body {
     transform: translateY(-1px);
 }
 
+/* Contenedor principal con fondo AZUL CLARO */
 .container {
     max-width: 850px;
     margin: auto;
-    background: #ffffff; /* Contenedor blanco sólido, sin transparencias */
+    background: #e0f2fe; /* Azul claro moderno y elegante */
     padding: 35px;
     border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); /* Sombra suave para destacar sobre el fondo blanco */
-    border: 1px solid #cbd5e1; /* Borde gris claro definido */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid #bae6fd; /* Borde sutil en tono azulado */
 }
 
-/* Título del panel */
+/* Título del panel con azul marino fuerte para resaltar bien */
 .titulo-evaluador {
     font-size: 1.6rem;
     font-weight: 800;
     text-align: center;
-    color: #1d4ed8; /* Color azul sólido, sin degradados transparentes */
+    color: #1e3a8a; /* Azul marino oscuro para contrastar perfecto sobre el azul claro */
     margin-bottom: 25px;
     letter-spacing: -0.5px;
 }
@@ -60,15 +61,15 @@ label {
     font-weight: 600;
     font-size: 0.9rem;
     margin-bottom: 8px;
-    color: #334155;
+    color: #1e293b; /* Texto oscuro para máxima legibilidad */
 }
 
 select, input[type="number"], textarea {
     width: 100%;
     padding: 12px;
     box-sizing: border-box;
-    background-color: #ffffff;
-    border: 1px solid #cbd5e1;
+    background-color: #ffffff; /* Cajas de texto blancas para escribir cómodamente */
+    border: 1px solid #94a3b8;
     color: #0f172a;
     border-radius: 8px;
     font-size: 14px;
@@ -84,19 +85,19 @@ select:focus, input:focus, textarea:focus {
 .section-title {
     margin-top: 30px;
     margin-bottom: 15px;
-    border-bottom: 2px solid #e2e8f0;
+    border-bottom: 2px solid #bae6fd;
     padding-bottom: 8px;
-    color: #1d4ed8;
+    color: #1e3a8a; /* Títulos de sección en azul marino */
     font-weight: 700;
     font-size: 1.1rem;
 }
 
 .criterio-card, .integrante-card {
-    background: #f8fafc;
+    background: #f0f9ff; /* Tarjetas internas en un azul un más claro todavía */
     padding: 16px;
     margin-bottom: 15px;
     border-radius: 10px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #bae6fd;
     border-left: 4px solid #2563eb;
 }
 
