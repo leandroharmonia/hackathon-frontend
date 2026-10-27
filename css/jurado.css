@@ -2,7 +2,7 @@
 
 body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background-color: #ffffff; /* Fondo general blanco sólido */
+    background-color: #ffffff;
     color: #1e293b;
     margin: 0;
     padding: 40px 20px;
@@ -31,23 +31,23 @@ body {
     transform: translateY(-1px);
 }
 
-/* Contenedor principal con fondo AZUL CLARO */
+/* Contenedor principal con fondo azul claro */
 .container {
     max-width: 850px;
     margin: auto;
-    background: #e0f2fe; /* Azul claro moderno y elegante */
+    background: #e0f2fe;
     padding: 35px;
     border-radius: 16px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    border: 1px solid #bae6fd; /* Borde sutil en tono azulado */
+    border: 1px solid #bae6fd;
 }
 
-/* Título del panel con azul marino fuerte para resaltar bien */
+/* Título del panel */
 .titulo-evaluador {
     font-size: 1.6rem;
     font-weight: 800;
     text-align: center;
-    color: #1e3a8a; /* Azul marino oscuro para contrastar perfecto sobre el azul claro */
+    color: #1e3a8a;
     margin-bottom: 25px;
     letter-spacing: -0.5px;
 }
@@ -56,30 +56,32 @@ body {
     margin-bottom: 20px;
 }
 
+/* Etiquetas más grandes y destacadas */
 label {
     display: block;
-    font-weight: 600;
-    font-size: 0.9rem;
+    font-weight: 700;
+    font-size: 1.05rem; /* Letras un poco más grandes */
     margin-bottom: 8px;
-    color: #1e293b; /* Texto oscuro para máxima legibilidad */
+    color: #1e3a8a; /* Azul oscuro para que resalte muy bien */
 }
 
+/* Campos desplegables y de texto con fondo NEGRO y letras BLANCAS */
 select, input[type="number"], textarea {
     width: 100%;
     padding: 12px;
     box-sizing: border-box;
-    background-color: #ffffff; /* Cajas de texto blancas para escribir cómodamente */
-    border: 1px solid #94a3b8;
-    color: #0f172a;
+    background-color: #000000; /* Fondo negro sólido */
+    border: 1px solid #475569;
+    color: #ffffff; /* Texto blanco para que contraste y se lea perfecto */
     border-radius: 8px;
     font-size: 14px;
     transition: border-color 0.2s;
 }
 
 select:focus, input:focus, textarea:focus {
-    border-color: #2563eb;
+    border-color: #60a5fa;
     outline: none;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25);
 }
 
 .section-title {
@@ -87,13 +89,13 @@ select:focus, input:focus, textarea:focus {
     margin-bottom: 15px;
     border-bottom: 2px solid #bae6fd;
     padding-bottom: 8px;
-    color: #1e3a8a; /* Títulos de sección en azul marino */
+    color: #1e3a8a;
     font-weight: 700;
     font-size: 1.1rem;
 }
 
 .criterio-card, .integrante-card {
-    background: #f0f9ff; /* Tarjetas internas en un azul un más claro todavía */
+    background: #f0f9ff;
     padding: 16px;
     margin-bottom: 15px;
     border-radius: 10px;
