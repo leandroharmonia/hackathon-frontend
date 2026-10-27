@@ -48,6 +48,16 @@
     <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
       <h2 class="section-title" style="margin-top: 0;">2. Definir Criterios de Evaluación (Rúbrica)</h2>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px;">
+        <div>
+          <label for="criterio-curso">Curso / Año Destino:</label>
+          <select id="criterio-curso">
+            <option value="">-- Seleccionar Curso --</option>
+            <option value="4to Año">4to Año</option>
+            <option value="5to Año">5to Año</option>
+            <option value="6to Año">6to Año</option>
+            <option value="7mo Año">7mo Año</option>
+          </select>
+        </div>
         <div style="grid-column: span 2;">
           <label for="criterio-nombre">Nombre del Criterio:</label>
           <input type="text" id="criterio-nombre" placeholder="Ej: Exposición Oral y Pitch">
@@ -172,19 +182,29 @@
     }
 
     async function crearCriterio() {
+      const curso = document.getElementById('criterio-curso').value;
       const nombre = document.getElementById('criterio-nombre').value.trim();
       const max = parseFloat(document.getElementById('criterio-max').value);
       const orden = parseInt(document.getElementById('criterio-orden').value) || 1;
-      if (!nombre || !max) return alert('Completa nombre y puntaje máximo del criterio.');
 
-      const { error } = await _supabase.from('criterios_rubrica').insert([{ id_edicion: 1, nombre: nombre, puntaje_maximo: max, orden: orden }]);
+      if (!curso) return alert('Por favor, selecciona para qué curso es este criterio.');
+      if (!nombre || !max) return alert('Completa el nombre y el puntaje máximo del criterio.');
+
+      const { error } = await _supabase.from('criterios_rubrica').insert([{ 
+        curso: curso, 
+        nombre: nombre, 
+        puntaje_maximo: max, 
+        orden: orden 
+      }]);
+
       if (error) {
         alert('Error al guardar criterio: ' + error.message);
       } else {
-        alert('¡Criterio agregado a la rúbrica!');
+        alert(`¡Criterio agregado exitosamente para ${curso}!`);
         document.getElementById('criterio-nombre').value = '';
         document.getElementById('criterio-max').value = '';
         document.getElementById('criterio-orden').value = '';
+        document.getElementById('criterio-curso').value = '';
       }
     }
 
