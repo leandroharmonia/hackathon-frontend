@@ -277,20 +277,32 @@
 
     async function inicializarJurado() {
         try {
-            // Se incluye el campo 'curso' explícitamente en la consulta
-            const { data: grupos, error } = await db.from('grupos').select('id_grupo, nombre, curso');
+            // Realizamos el join con la tabla 'curso' a través de id_curso
+            const { data: grupos, error } = await db
+                .from('grupos')
+                .select('id_grupo, nombre, id_curso, curso(id_curso, nombre)');
+
             if (error) throw error;
 
             listaGlobalGrupos = grupos || [];
-
-            const cursosUnicos = [...new Set(listaGlobalGrupos.map(g => g.curso))].filter(Boolean);
             const selectCurso = document.getElementById('select-curso');
-
             selectCurso.innerHTML = '<option value="">-- Seleccionar Curso --</option>';
-            cursosUnicos.forEach(curso => {
+
+            // Extraemos los cursos únicos de la relación
+            const cursosMap = new Map();
+            listaGlobalGrupos.forEach(g => {
+                if (g.curso) {
+                    const cursoObj = Array.isArray(g.curso) ? g.curso[0] : g.curso;
+                    if (cursoObj && cursoObj.id_curso) {
+                        cursosMap.set(cursoObj.id_curso, cursoObj.nombre);
+                    }
+                }
+            });
+
+            cursosMap.forEach((nombreCurso, idCurso) => {
                 const opt = document.createElement('option');
-                opt.value = curso;
-                opt.textContent = curso;
+                opt.value = idCurso;
+                opt.textContent = nombreCurso;
                 selectCurso.appendChild(opt);
             });
         } catch (err) {
@@ -299,22 +311,24 @@
     }
 
     function seleccionarCurso() {
-        const cursoSeleccionado = document.getElementById('select-curso').value;
+        const idCursoSeleccionado = document.getElementById('select-curso').value;
         const grupoContainer = document.getElementById('grupo-container');
         const selectGrupo = document.getElementById('select-grupo');
         const seccionEvaluacion = document.getElementById('seccion-evaluacion');
 
-        // Ocultar sección de evaluación si se cambia de curso
         seccionEvaluacion.style.display = 'none';
         selectGrupo.innerHTML = '<option value="">-- Seleccione un grupo --</option>';
 
-        if (!cursoSeleccionado) {
+        if (!idCursoSeleccionado) {
             grupoContainer.style.display = 'none';
             return;
         }
 
-        // Filtrar los grupos que pertenecen al curso seleccionado
-        const gruposFiltrados = listaGlobalGrupos.filter(g => g.curso === cursoSeleccionado);
+        // Filtramos los grupos que pertenecen al id_curso seleccionado
+        const gruposFiltrados = listaGlobalGrupos.filter(g => {
+            const cursoObj = Array.isArray(g.curso) ? g.curso[0] : g.curso;
+            return cursoObj && cursoObj.id_curso == idCursoSeleccionado;
+        });
 
         gruposFiltrados.forEach(g => {
             const opt = document.createElement('option');
@@ -323,7 +337,6 @@
             selectGrupo.appendChild(opt);
         });
 
-        // Mostrar el selector de grupos desplegable
         grupoContainer.style.display = 'block';
     }
 
