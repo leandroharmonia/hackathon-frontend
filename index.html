@@ -28,7 +28,7 @@
         <button type="submit">Siguiente</button>
       </form>
 
-      <!-- Enlace para ir directamente a la vista de Rankings -->
+      <!-- Enlace directo al ranking -->
       <br>
       <div style="text-align: center;">
         <a href="Rankings.html" style="color: #1877f2; text-decoration: none; font-size: 0.9rem; font-weight: 500;">
@@ -42,7 +42,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const SUPABASE_URL = "https://lunpcumjmkbetdccsmuo.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1bnBjdW1qbWtiZXRkY2NzbXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODc1MjcsImV4cCI6Bt0zc1NjM1MjN9.MyP9ADhCM8LBP7jvtRs-rUX1n-MYShBMA5qtFRMH3Xc";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1bnBjdW1qbWtiZXRkY2NzbXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODc1MjcsImV4cCI6MjEwNzU2MzUyN30.MyP9ADhCM8LBP7jvtRs-rUX1n-MYShBMA5qtFRMH3Xc";
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     document.getElementById("login-form").addEventListener("submit", async (e) => {
@@ -50,7 +50,6 @@
       const email = document.getElementById("usuario").value.trim();
       const pass  = document.getElementById("contrasena").value;
 
-      // Consulta validando el correo y la columna password_hash
       const { data, error } = await db
         .from("usuarios")
         .select("id_usuario, nombre, apellido, rol")
