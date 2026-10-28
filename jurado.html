@@ -134,12 +134,6 @@
             font-weight: 700;
         }
 
-        .grid-defensa {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 12px;
-        }
-
         .btn-container {
             display: flex;
             gap: 15px;
@@ -246,8 +240,8 @@
         </div>
 
         <div class="btn-container">
-            <button type="button" class="btn-borrador" onclick="guardarEvaluacion('en proceso')">💾 Guardar Borrador (En Proceso)</button>
-            <button type="button" class="btn-cerrar" onclick="guardarEvaluacion('terminado')">✅ Guardar Definitivo (Terminado)</button>
+            <button type="button" class="btn-borrador" onclick="guardarEvaluacion('borrador')">💾 Guardar Borrador (En Proceso)</button>
+            <button type="button" class="btn-cerrar" onclick="guardarEvaluacion('cerrado')">✅ Guardar Definitivo (Cerrado)</button>
         </div>
     </div>
 </div>
@@ -370,10 +364,7 @@
                     divIntegrantes.innerHTML += `
                         <div class="integrante-card">
                             <span class="integrante-nombre">${alumno.nombre} ${alumno.apellido}</span>
-                            <div class="grid-defensa">
-                                <input type="number" id="ind_puntaje_${alumno.id_usuario}" placeholder="Puntaje">
-                                <input type="text" id="ind_comentario_${alumno.id_usuario}" placeholder="Comentario individual (opcional)">
-                            </div>
+                            <input type="number" id="ind_puntaje_${alumno.id_usuario}" placeholder="Puntaje individual obtenido">
                         </div>
                     `;
                 }
@@ -410,9 +401,7 @@
             if (defensas) {
                 defensas.forEach(def => {
                     const inpPuntaje = document.getElementById(`ind_puntaje_${def.id_alumno}`);
-                    const inpComentario = document.getElementById(`ind_comentario_${def.id_alumno}`);
                     if (inpPuntaje) inpPuntaje.value = def.puntaje || 0;
-                    if (inpComentario) inpComentario.value = def.comentario || '';
                 });
             }
         } else {
@@ -480,8 +469,6 @@
                 const idAlumno = inputPuntaje.id.replace('ind_puntaje_', '');
 
                 const puntajeInd = parseFloat(inputPuntaje.value) || 0;
-                const inputCom = document.getElementById(`ind_comentario_${idAlumno}`);
-                const comentarioInd = inputCom ? inputCom.value : '';
 
                 await db.from('defensa_individual').delete()
                     .eq('id_evaluacion', idEvaluacion)
@@ -490,16 +477,15 @@
                 const { error: errDef } = await db.from('defensa_individual').insert([{
                     id_evaluacion: idEvaluacion,
                     id_alumno: idAlumno,
-                    puntaje: puntajeInd,
-                    comentario: comentarioInd
+                    puntaje: puntajeInd
                 }]);
                 if (errDef) throw errDef;
             }
 
-            if (estadoDeseado === 'terminado') {
+            if (estadoDeseado === 'cerrado') {
                 alert("¡Evaluación guardada y finalizada con éxito! Ya está disponible en los rankings y para el alumno.");
             } else {
-                alert("Borrador guardado correctamente (en proceso). Puedes modificarlo cuando quieras.");
+                alert("Borrador guardado correctamente. Puedes modificarlo cuando quieras.");
             }
 
         } catch (error) {
