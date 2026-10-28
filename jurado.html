@@ -3,61 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Jurado - Evaluación</title>
-    <link rel="stylesheet" href="jurado.css"> <!-- O tus estilos correspondientes -->
+    <title>Panel de Jurado</title>
+    <link rel="stylesheet" href="notas.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<div class="contenedor-principal">
-    <header>
-        <h2>Panel de Evaluación - Jurado</h2>
-        <div id="info-jurado">Cargando datos del jurado...</div>
-        <button onclick="irARankings()" style="background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Ver Rankings</button>
-        <button onclick="cerrarSesion()" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Cerrar Sesión</button>
-    </header>
+<div class="texto">
+    <div class="titulos">
+        <h3>SISTEMA DE EVALUACIÓN</h3>
+        <h1>Panel de Evaluación - Jurado</h1>
+        <h4 id="info-jurado">Cargando datos del jurado...</h4>
+    </div>
 
-    <main style="margin-top: 20px;">
-        <div class="selector-grupo">
-            <label for="select-grupo"><strong>Seleccionar Grupo a Evaluar:</strong></label>
-            <select id="select-grupo" onchange="cargarDatosEvaluacion()">
-                <option value="">-- Seleccione un grupo --</option>
-            </select>
+    <div style="margin-bottom: 20px;">
+        <label for="select-grupo" style="font-weight: bold; color: #333;">Seleccionar Grupo a Evaluar:</label>
+        <select id="select-grupo" onchange="cargarDatosEvaluacion()" style="padding: 6px; border-radius: 4px; margin-left: 10px;">
+            <option value="">-- Seleccione un grupo --</option>
+        </select>
+    </div>
+
+    <div id="seccion-evaluacion" style="display: none;">
+        <h3>Criterios de Evaluación Grupal</h3>
+        <div id="lista-criterios" class="puntajesi" style="margin-bottom: 20px;">
+            <!-- Se cargan dinámicamente -->
         </div>
 
-        <div id="seccion-evaluacion" style="margin-top: 20px; display: none;">
-            <h3 id="titulo-grupo-activo">Evaluando equipo</h3>
-
-            <!-- CRITERIOS DE RÚBRICA GRUPAL -->
-            <div style="background: rgba(19, 34, 71, 0.9); padding: 15px; border-radius: 8px; color: #fff; margin-bottom: 15px;">
-                <h4>Criterios de Evaluación Grupal</h4>
-                <div id="lista-criterios">
-                    <!-- Se cargan dinámicamente -->
-                </div>
-            </div>
-
-            <!-- DEFENSA INDIVIDUAL / NIVELES (Especial para 7mo año o alumnos) -->
-            <div style="background: rgba(19, 34, 71, 0.9); padding: 15px; border-radius: 8px; color: #fff; margin-bottom: 15px;">
-                <h4>Evaluación Individual de Integrantes</h4>
-                <div id="lista-integrantes-defensa">
-                    <!-- Se cargan los alumnos del grupo para su nota individual -->
-                </div>
-            </div>
-
-            <!-- COMENTARIOS GENERALES -->
-            <div style="margin-bottom: 15px;">
-                <label style="color: #fff; display: block; margin-bottom: 5px;">Comentarios Generales:</label>
-                <textarea id="comentario-general" rows="3" style="width: 100%; padding: 8px; border-radius: 4px;" placeholder="Escribe observaciones para el grupo..."></textarea>
-            </div>
-
-            <!-- BOTONES DE GUARDADO -->
-            <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button onclick="guardarEvaluacion('en proceso')" style="background: #f59e0b; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">💾 Guardar Borrador (En Proceso)</button>
-                <button onclick="guardarEvaluacion('terminado')" style="background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">✅ Guardar Definitivo (Terminado)</button>
-            </div>
+        <h3>Evaluación Individual de Integrantes</h3>
+        <div id="lista-integrantes-defensa" class="puntajesg" style="margin-bottom: 20px;">
+            <!-- Se cargan dinámicamente -->
         </div>
-    </main>
+
+        <div style="margin-bottom: 20px;">
+            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Comentarios Generales:</label>
+            <textarea id="comentario-general" rows="3" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;" placeholder="Escribe observaciones para el grupo..."></textarea>
+        </div>
+
+        <!-- BOTONES DE GUARDADO -->
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-bottom: 25px;">
+            <button onclick="guardarEvaluacion('en proceso')" style="background: rgba(245, 158, 11, 0.2); color: #d97706; border: 1px solid #f59e0b; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold;">💾 Guardar Borrador (En Proceso)</button>
+            <button onclick="guardarEvaluacion('terminado')" style="background: rgba(16, 185, 129, 0.2); color: #059669; border: 1px solid #10b981; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold;">✅ Guardar Definitivo (Terminado)</button>
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 10px; margin-top: 25px;">
+        <button onclick="irARankings()" style="background: rgba(59,130,246,0.2); color: #2563eb; border: 1px solid #3b82f6; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold;">Ver Rankings</button>
+        <button onclick="cerrarSesion()" style="background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid #f87171; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold;">Cerrar Sesión</button>
+    </div>
 </div>
+
+<img src="img/Grupos.jpg" alt="Imagen de fondo" class="imagen-fondo">
 
 <script>
     const SUPABASE_URL = "https://lunpcumjmkbetdccsmuo.supabase.co";
@@ -107,22 +102,22 @@
         }
         seccion.style.display = 'block';
 
-        // Cargar criterios de rúbrica
+        // 1. Cargar criterios de rúbrica
         const { data: criterios } = await db.from('criterios_rubrica').select('*');
         const divCriterios = document.getElementById('lista-criterios');
         divCriterios.innerHTML = '';
         if (criterios) {
             criterios.forEach(c => {
                 divCriterios.innerHTML += `
-                    <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="background: rgba(19, 34, 71, 0.9); border: 1px solid #1e3a75; padding: 10px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; color: #fff;">
                         <span>${c.nombre} (Máx: ${c.puntaje_maximo} pts)</span>
-                        <input type="number" id="criterio_${c.id_criterio}" min="0" max="${c.puntaje_maximo}" placeholder="Puntaje" style="width: 80px; padding: 4px;">
+                        <input type="number" id="criterio_${c.id_criterio}" min="0" max="${c.puntaje_maximo}" placeholder="Puntaje" style="width: 90px; padding: 6px; border-radius: 4px; border: 1px solid #ccc;">
                     </div>
                 `;
             });
         }
 
-        // Cargar integrantes del grupo para defensa individual
+        // 2. Cargar integrantes del grupo para defensa individual
         const { data: integrantes } = await db
             .from('grupo_integrantes')
             .select('id_alumno, usuarios(id_usuario, nombre, apellido)')
@@ -135,13 +130,13 @@
                 const alumno = item.usuarios;
                 if (alumno) {
                     divIntegrantes.innerHTML += `
-                        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 4px; margin-bottom: 8px;">
-                            <strong>${alumno.nombre} ${alumno.apellido}</strong>
-                            <div style="display: flex; gap: 10px; margin-top: 5px;">
-                                <input type="number" id="ind_n1_${alumno.id_usuario}" placeholder="Nivel 1 (0-5)" style="width: 100px; padding: 4px;">
-                                <input type="number" id="ind_n2_${alumno.id_usuario}" placeholder="Nivel 2 (0-5)" style="width: 100px; padding: 4px;">
-                                <input type="number" id="ind_n3_${alumno.id_usuario}" placeholder="Nivel 3 (0-5)" style="width: 100px; padding: 4px;">
-                                <input type="number" id="ind_vivo_${alumno.id_usuario}" placeholder="Vivo (0-10)" style="width: 100px; padding: 4px;">
+                        <div style="background: rgba(19, 34, 71, 0.9); border: 1px solid #1e3a75; padding: 12px; border-radius: 8px; margin-bottom: 10px; color: #fff;">
+                            <strong style="color: #60a5fa;">${alumno.nombre} ${alumno.apellido}</strong>
+                            <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+                                <input type="number" id="ind_n1_${alumno.id_usuario}" placeholder="N1 (0-5)" style="width: 90px; padding: 6px; border-radius: 4px;">
+                                <input type="number" id="ind_n2_${alumno.id_usuario}" placeholder="N2 (0-5)" style="width: 90px; padding: 6px; border-radius: 4px;">
+                                <input type="number" id="ind_n3_${alumno.id_usuario}" placeholder="N3 (0-5)" style="width: 90px; padding: 6px; border-radius: 4px;">
+                                <input type="number" id="ind_vivo_${alumno.id_usuario}" placeholder="Vivo (0-10)" style="width: 95px; padding: 6px; border-radius: 4px;">
                             </div>
                         </div>
                     `;
@@ -149,7 +144,7 @@
             });
         }
 
-        // Verificar si ya existe una evaluación previa de este jurado para este grupo
+        // 3. Cargar datos si ya existen en la base de datos
         const { data: evalExistente } = await db
             .from('evaluaciones')
             .select('*')
@@ -159,7 +154,34 @@
 
         if (evalExistente) {
             document.getElementById('comentario-general').value = evalExistente.comentario_general || '';
-            // Si ya está terminado, podrías bloquear los inputs opcionalmente
+
+            // Cargar puntajes de criterios si existen
+            const { data: detalles } = await db
+                .from('evaluacion_detalle')
+                .select('*')
+                .eq('id_evaluacion', evalExistente.id_evaluacion);
+
+            if (detalles) {
+                detalles.forEach(d => {
+                    const input = document.getElementById(`criterio_${d.id_criterio}`);
+                    if (input) input.value = d.puntaje;
+                });
+            }
+
+            // Cargar defensa individual si existe
+            const { data: defensas } = await db
+                .from('defensa_individual')
+                .select('*')
+                .eq('id_evaluacion', evalExistente.id_evaluacion);
+
+            if (defensas) {
+                defensas.forEach(def => {
+                    if(document.getElementById(`ind_n1_${def.id_alumno}`)) document.getElementById(`ind_n1_${def.id_alumno}`).value = def.nivel_1 || '';
+                    if(document.getElementById(`ind_n2_${def.id_alumno}`)) document.getElementById(`ind_n2_${def.id_alumno}`).value = def.nivel_2 || '';
+                    if(document.getElementById(`ind_n3_${def.id_alumno}`)) document.getElementById(`ind_n3_${def.id_alumno}`).value = def.nivel_3 || '';
+                    if(document.getElementById(`ind_vivo_${def.id_alumno}`)) document.getElementById(`ind_vivo_${def.id_alumno}`).value = def.cambio_vivo || '';
+                });
+            }
         }
     }
 
@@ -174,8 +196,6 @@
         }
 
         try {
-            // 1. Insertar o actualizar la cabecera en 'evaluaciones'
-            // Verificamos si ya existe
             const { data: evalActual } = await db
                 .from('evaluaciones')
                 .select('id_evaluacion')
@@ -203,7 +223,6 @@
                 idEvaluacion = nuevaEval.id_evaluacion;
             }
 
-            // 2. Guardar detalles de rúbrica (eliminamos anteriores y reinsertamos o actualizamos)
             await db.from('evaluacion_detalle').delete().eq('id_evaluacion', idEvaluacion);
 
             const inputsCriterios = document.querySelectorAll('#lista-criterios input');
@@ -218,10 +237,8 @@
                 }]);
             }
 
-            // 3. Guardar defensa individual por alumno
             const contenedoresAlumnos = document.querySelectorAll('#lista-integrantes-defensa > div');
             for (let cont of contenedoresAlumnos) {
-                // Extraer id del alumno desde los inputs internos
                 const inputN1 = cont.querySelector('input[id^="ind_n1_"]');
                 if (!inputN1) continue;
                 const idAlumno = inputN1.id.replace('ind_n1_', '');
@@ -232,7 +249,6 @@
                 const vivo = parseFloat(document.getElementById(`ind_vivo_${idAlumno}`).value) || 0;
                 const totalInd = n1 + n2 + n3 + vivo;
 
-                // Borramos registro previo de defensa de este alumno para esta evaluación
                 await db.from('defensa_individual').delete()
                     .eq('id_evaluacion', idEvaluacion)
                     .eq('id_alumno', idAlumno);
