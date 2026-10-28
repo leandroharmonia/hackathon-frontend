@@ -55,7 +55,7 @@
         const h4Grupo = document.getElementById('nombre-grupo');
 
         try {
-            // 1. Obtener el grupo del alumno (usando id_alumno correctamente)
+            // 1. Obtener el grupo del alumno
             const { data: relGrupo, error: errRel } = await db
                 .from('grupo_integrantes')
                 .select('id_grupo, grupos(nombre)')
@@ -73,20 +73,59 @@
             const nombreGrupo = relGrupo.grupos ? relGrupo.grupos.nombre : 'Equipo';
             h4Grupo.textContent = `Actividad: Evaluaciones para el equipo "${nombreGrupo}"`;
 
-            // 2. MOSTRAR PUNTAJE INDIVIDUAL DEL ALUMNO
-            divIndividual.innerHTML = `
-                <div style="background: rgba(19, 34, 71, 0.9); border: 1px solid #1e3a75; padding: 12px; border-radius: 8px; color: #fff;">
-                    <strong style="color: #60a5fa;">${usuarioLogueado.nombre} ${usuarioLogueado.apellido} (Tú)</strong>
-                    <div style="margin-top: 8px; font-size: 0.9rem;">
-                        <p style="margin: 4px 0; color: #cbd5e1;">Defensa individual registrada correctamente.</p>
+            // 2. CARGAR PUNTAJE INDIVIDUAL DESDE LA TABLA 'defensa_individual'
+            const { data: notaInd, error: errNotaInd } = await db
+                .from('defensa_individual')
+                .select('*')
+                .eq('id_alumno', usuarioLogueado.id_usuario)
+                .maybeSingle();
+
+            if (errNotaInd) {
+                console.error("Error al cargar defensa individual:", errNotaInd);
+            }
+
+            if (!notaInd) {
+                divIndividual.innerHTML = `
+                    <div style="background: rgba(19, 34, 71, 0.9); border: 1px solid #1e3a75; padding: 12px; border-radius: 8px; color: #fff;">
+                        <strong style="color: #60a5fa;">${usuarioLogueado.nombre} ${usuarioLogueado.apellido} (Tú)</strong>
+                        <p style="margin: 6px 0 0 0; color: #94a3b8; font-size: 0.9rem;">Aún no tienes calificaciones individuales registradas.</p>
                     </div>
-                </div>
-            `;
+                `;
+            } else {
+                // Si la tabla tiene columnas específicas de niveles o puntaje total individual
+                let detallePuntaje = '';
+                let totalInd = notaInd.total || notaInd.puntaje || notaInd.nota || 0;
+
+                if (notaInd.nivel_1 !== undefined || notaInd.n1 !== undefined) {
+                    const n1 = notaInd.nivel_1 || notaInd.n1 || 0;
+                    const n2 = notaInd.nivel_2 || notaInd.n2 || 0;
+                    const n3 = notaInd.nivel_3 || notaInd.n3 || 0;
+                    const vivo = notaInd.cambio_vivo || notaInd.vivo || 0;
+                    detallePuntaje = `
+                        <div>• Nivel 1: <strong>${n1}</strong> / 5 pts</div>
+                        <div>• Nivel 2: <strong>${n2}</strong> / 5 pts</div>
+                        <div>• Nivel 3: <strong>${n3}</strong> / 5 pts</div>
+                        <div>• Cambio en vivo / Pizarra: <strong>${vivo}</strong> / 10 pts</div>
+                    `;
+                }
+
+                divIndividual.innerHTML = `
+                    <div style="background: rgba(19, 34, 71, 0.9); border: 1px solid #1e3a75; padding: 12px; border-radius: 8px; color: #fff;">
+                        <strong style="color: #60a5fa;">${usuarioLogueado.nombre} ${usuarioLogueado.apellido} (Tú)</strong>
+                        <div style="margin-top: 8px; font-size: 0.9rem;">
+                            ${detallePuntaje}
+                        </div>
+                        <div style="margin-top: 8px; text-align: right; font-weight: bold; color: #38bdf8; font-size: 1rem; border-top: 1px solid #1e3a75; padding-top: 6px;">
+                            Total Individual: ${totalInd} pts
+                        </div>
+                    </div>
+                `;
+            }
 
             // 3. CARGAR PUNTAJE GRUPAL (Criterios y Total)
             const { data: evaluaciones, error: errEval } = await db
                 .from('evaluaciones')
-                .select('id_evaluacion, estado, usuarios(nombre, apellido)')
+                .select('id_evaluacion, estado')
                 .eq('id_grupo', idGrupo);
 
             if (errEval) throw errEval;
@@ -96,8 +135,6 @@
             } else {
                 divGrupal.innerHTML = '';
                 for (let ev of evaluaciones) {
-                    const nombreJurado = ev.usuarios ? `${ev.usuarios.nombre} ${ev.usuarios.apellido}` : 'Jurado';
-                    
                     const { data: detalles } = await db
                         .from('evaluacion_detalle')
                         .select('puntaje, criterios_rubrica(nombre, puntaje_maximo)')
@@ -117,10 +154,10 @@
                     divGrupal.innerHTML += `
                         <div style="background: rgba(19, 34, 71, 0.9); border: 1px solid #1e3a75; padding: 12px; border-radius: 8px; margin-bottom: 10px; color: #fff;">
                             <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                                <strong style="color: #60a5fa;">Jurado: ${nombreJurado}</strong>
+                                <strong style="color: #60a5fa;">Evaluación de Jurado</strong>
                                 <span style="font-size: 0.8rem; background: rgba(16,185,129,0.2); color: #34d399; padding: 2px 6px; border-radius: 4px;">${ev.estado || 'Evaluado'}</span>
                             </div>
-                            <div style="font-size: 0.9rem;">${htmlCriterios}</div>
+                            <div style="font-size: 0.9rem;">${htmlCriterios || 'No hay criterios evaluados todavía.'}</div>
                             <div style="margin-top: 8px; text-align: right; font-weight: bold; color: #38bdf8; font-size: 1rem; border-top: 1px solid #1e3a75; padding-top: 6px;">
                                 Total Grupal: ${sumaTotalGrupal} pts
                             </div>
