@@ -56,7 +56,6 @@
         const h4Grupo = document.getElementById('nombre-grupo');
 
         try {
-            // CORREGIDO: Se cambia id_usuario por id_alumno para que coincida con la tabla grupo_integrantes
             const { data: relGrupo, error: errRel } = await db
                 .from('grupo_integrantes')
                 .select('id_grupo, grupos(nombre)')
@@ -116,9 +115,10 @@
                 }
             }
 
+            // CORREGIDO: Se incluye id_alumno en la consulta para relacionar correctamente con usuarios
             const { data: integrantes, error: errInt } = await db
                 .from('grupo_integrantes')
-                .select('usuarios(id_usuario, nombre, apellido)')
+                .select('id_alumno, usuarios(id_usuario, nombre, apellido)')
                 .eq('id_grupo', idGrupo);
 
             if (errInt) throw errInt;
@@ -130,7 +130,7 @@
                 integrantes.forEach(item => {
                     const alumno = item.usuarios;
                     if (alumno) {
-                        const esYo = alumno.id_usuario === usuarioLogueado.id_usuario;
+                        const esYo = item.id_alumno === usuarioLogueado.id_usuario;
                         divIndividuales.innerHTML += `
                             <div style="background: rgba(19, 34, 71, 0.9); border: 1px solid #1e3a75; padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; color: #fff; display: flex; justify-content: space-between; align-items: center;">
                                 <span>${alumno.nombre} ${alumno.apellido}</span>
