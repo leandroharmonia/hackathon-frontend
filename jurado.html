@@ -12,11 +12,16 @@
     .tabla-defensa th, .tabla-defensa td { border: 1px solid #cbd5e1; padding: 8px; text-align: center; }
     .tabla-defensa th { background: #f1f5f9; color: #1e293b; font-size: 0.8rem; }
     .input-nivel { width: 60px; padding: 6px; text-align: center; border: 1px solid #cbd5e1; border-radius: 4px; }
+    .btn-ranking-top { background: #0ea5e9; color: #fff; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; border: none; cursor: pointer; text-decoration: none; margin-right: 10px; display: inline-block; }
+    .btn-ranking-top:hover { background: #0284c7; }
   </style>
 </head>
 <body>
 
-  <button class="btn-logout-top" onclick="cerrarSesion()">Cerrar Sesión</button>
+  <div style="position: absolute; top: 15px; right: 20px; display: flex; align-items: center;">
+    <a href="rankings.html" class="btn-ranking-top">Ver Rankings y Méritos</a>
+    <button class="btn-logout-top" onclick="cerrarSesion()" style="position: static;">Cerrar Sesión</button>
+  </div>
 
   <div class="container">
     <div class="header-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">

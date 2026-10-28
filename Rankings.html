@@ -126,7 +126,8 @@
 <body>
 
 <div class="container">
-  <a href="index.html" class="btn-volver">← Volver al inicio</a>
+  <!-- Botón de volver ajustado al panel de jurado -->
+  <a href="jurado.html" class="btn-volver">← Volver al Panel de Jurado</a>
 
   <div class="header-planilla">
     <h1>PLANILLA 3 - Orden de Mérito</h1>
@@ -173,15 +174,13 @@
 </div>
 
 <script>
-  // Reemplaza con tus claves reales de Supabase
-  const SUPABASE_URL = 'https://TU_PROYECTO.supabase.co';
-  const SUPABASE_ANON_KEY = 'TU_ANON_KEY';
+  const SUPABASE_URL = 'https://lunpcumjmkbetdccsmuo.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1bnBjdW1qbWtiZXRkY2NzbXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODc1MjcsImV4cCI6MjEwNzU2MzUyN30.MyP9ADhCM8LBP7jvtRs-rUX1n-MYShBMA5qtFRMH3Xc';
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   let evaluacionesGlobales = [];
 
   async function obtenerDatos() {
-    // Consulta la vista con todas las calificaciones y el curso/año del grupo
     const { data, error } = await supabaseClient
       .from('vista_ranking_grupos')
       .select('*');
@@ -200,17 +199,23 @@
   function renderizarTabla() {
     const cursoSeleccionado = document.getElementById('select-curso').value;
     
-    // 1. Filtrar por curso seleccionado
     let filtrados = evaluacionesGlobales.filter(item => {
       if (cursoSeleccionado === 'todos') return true;
-      return String(item.curso || item.anio) === String(cursoSeleccionado);
+      return String(item.curso || item.anio || item.id_curso) === String(cursoSeleccionado);
     });
 
-    // 2. Ordenar de mayor a menor según puntaje total y desempate
     filtrados.sort((a, b) => {
-      if (b.total !== a.total) return b.total - a.total; // Mayor total primero
-      if (b.defensa !== a.defensa) return b.defensa - a.defensa; // Desempate Defensa
-      return b.base_datos - a.base_datos; // Desempate Base de Datos
+      const totalA = a.total || 0;
+      const totalB = b.total || 0;
+      if (totalB !== totalA) return totalB - totalA;
+      
+      const defensaA = a.defensa || 0;
+      const defensaB = b.defensa || 0;
+      if (defensaB !== defensaA) return defensaB - defensaA;
+
+      const bdA = a.base_datos || 0;
+      const bdB = b.base_datos || 0;
+      return bdB - bdA;
     });
 
     const tbody = document.getElementById('tabla-merito-body');
@@ -231,8 +236,8 @@
 
       tr.innerHTML = `
         <td class="puesto ${clasePodio}">${index + 1}°</td>
-        <td style="text-align: left; font-weight: 600;">${item.nombre_grupo || 'Grupo ' + item.grupo_id}</td>
-        <td>${item.curso || item.anio || '-'}° Año</td>
+        <td style="text-align: left; font-weight: 600;">${item.nombre_grupo || item.grupo_nombre || 'Grupo ' + item.grupo_id}</td>
+        <td>${item.curso || item.anio || item.id_curso || '-'}° Año</td>
         <td>${(item.producto || 0).toFixed(1)}</td>
         <td>${(item.stand_pitch || 0).toFixed(1)}</td>
         <td>${(item.base_datos || 0).toFixed(1)}</td>
@@ -244,7 +249,6 @@
     });
   }
 
-  // Inicializar al cargar la página
   obtenerDatos();
 </script>
 
