@@ -39,13 +39,13 @@
         <label for="filtro-curso">Curso / Año:</label>
         <select id="filtro-curso" onchange="cambiarCursoEvaluacion()">
           <option value="">-- Seleccione un curso --</option>
-          <option value="1er Año">1er Año</option>
-          <option value="2do Año">2do Año</option>
-          <option value="3er Año">3er Año</option>
-          <option value="4to Año">4to Año</option>
-          <option value="5to Año">5to Año</option>
-          <option value="6to Año">6to Año</option>
-          <option value="7mo Año">7mo Año</option>
+          <option value="1">1er Año</option>
+          <option value="2">2do Año</option>
+          <option value="3">3er Año</option>
+          <option value="4">4to Año</option>
+          <option value="5">5to Año</option>
+          <option value="6">6to Año</option>
+          <option value="7">7mo Año</option>
         </select>
       </div>
     </div>
@@ -113,7 +113,7 @@
     }
 
     async function cambiarCursoEvaluacion() {
-      const cursoSeleccionado = document.getElementById('filtro-curso').value;
+      const idCursoSeleccionado = document.getElementById('filtro-curso').value;
       const seccionEval = document.getElementById('seccion-evaluacion');
       const selectGrupo = document.getElementById('select-grupo-evaluar');
       const contenedorCriterios = document.getElementById('contenedor-criterios');
@@ -121,7 +121,7 @@
       document.getElementById('lbl-total-grupal').innerText = '0';
       document.getElementById('contenedor-badge-total-defensa').style.display = 'none';
 
-      if (!cursoSeleccionado) {
+      if (!idCursoSeleccionado) {
         seccionEval.style.display = 'none';
         return;
       }
@@ -133,7 +133,7 @@
       const { data: grupos } = await _supabase
         .from('grupos')
         .select('*')
-        .eq('curso', cursoSeleccionado);
+        .eq('id_curso', parseInt(idCursoSeleccionado));
 
       selectGrupo.innerHTML = '<option value="">-- Seleccione un grupo --</option>';
       if (grupos && grupos.length > 0) {
@@ -147,7 +147,7 @@
       const { data: criterios } = await _supabase
         .from('criterios_rubrica')
         .select('*')
-        .eq('curso', cursoSeleccionado)
+        .eq('id_curso', parseInt(idCursoSeleccionado))
         .order('orden', { ascending: true });
 
       if (criterios && criterios.length > 0) {
@@ -167,7 +167,7 @@
 
     async function cargarDatosGrupoSeleccionado() {
       const idGrupo = document.getElementById('select-grupo-evaluar').value;
-      const cursoSeleccionado = document.getElementById('filtro-curso').value;
+      const idCursoSeleccionado = document.getElementById('filtro-curso').value;
       const contenedorIntegrantes = document.getElementById('contenedor-integrantes');
       const badgeDefensa = document.getElementById('contenedor-badge-total-defensa');
 
@@ -190,7 +190,8 @@
 
       badgeDefensa.style.display = 'block';
 
-      if (cursoSeleccionado === '7mo Año') {
+      // Si el id_curso es 7 (7mo Año), mostramos la tabla detallada de niveles
+      if (idCursoSeleccionado === "7") {
         let htmlTabla = `
           <table class="tabla-defensa">
             <thead>
@@ -263,11 +264,11 @@
     }
 
     function calcularTotalPromedioDefensa() {
-      const cursoSeleccionado = document.getElementById('filtro-curso').value;
+      const idCursoSeleccionado = document.getElementById('filtro-curso').value;
       let sumaTotal = 0;
       let cantidad = 0;
 
-      if (cursoSeleccionado === '7mo Año') {
+      if (idCursoSeleccionado === "7") {
         const totalesAlumnos = document.querySelectorAll('.total-alumno');
         totalesAlumnos.forEach(el => {
           sumaTotal += parseFloat(el.innerText) || 0;
@@ -286,7 +287,7 @@
     }
 
     function guardarCalificaciones() {
-      alert('Calificaciones de rúbrica grupal y defensa individual listas para guardar.');
+      alert('Calificaciones listas para guardar en Supabase.');
     }
   </script>
 </body>
