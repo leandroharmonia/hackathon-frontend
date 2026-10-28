@@ -19,14 +19,14 @@
     <div class="header-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
       <div>
         <h1 class="titulo-admin" style="text-align: left; margin-bottom: 5px;" id="user-greeting">Panel del Jurado</h1>
-        <p style="font-size: 0.9rem; color: #475569;">Evaluación de Proyectos por Curso</p>
+        <p style="font-size: 0.9rem; color: #475569;">Evaluación de Proyectos y Defensa Individual por Curso</p>
       </div>
       <div>
         <span style="background: #dbeafe; color: #1e3a8a; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; border: 1px solid #93c5fd;">JURADO</span>
       </div>
     </div>
 
-    <!-- SELECCIÓN DE CURSO A EVALUAR -->
+    <!-- 1. SELECCIÓN DE CURSO A EVALUAR -->
     <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
       <h2 class="section-title" style="margin-top: 0;">1. Seleccionar Curso a Evaluar</h2>
       <div>
@@ -44,24 +44,37 @@
       </div>
     </div>
 
-    <!-- SECCIÓN DE EVALUACIÓN (Se llena dinámicamente según el curso elegido) -->
+    <!-- SECCIÓN DINÁMICA DE EVALUACIÓN -->
     <div id="seccion-evaluacion" style="display: none;">
+      
+      <!-- 2. SELECCIÓN DE GRUPO -->
       <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
         <h2 class="section-title" style="margin-top: 0;">2. Seleccionar Grupo del Curso</h2>
         <div>
           <label for="select-grupo-evaluar">Grupo / Proyecto:</label>
-          <select id="select-grupo-evaluar">
+          <select id="select-grupo-evaluar" onchange="cargarDatosGrupoSeleccionado()">
             <option value="">-- Seleccione un grupo --</option>
           </select>
         </div>
       </div>
 
+      <!-- 3. CRITERIOS DE EVALUACIÓN DE LA RÚBRICA -->
       <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
-        <h2 class="section-title" style="margin-top: 0;">3. Criterios de Evaluación</h2>
+        <h2 class="section-title" style="margin-top: 0;">3. Criterios de Evaluación del Proyecto</h2>
         <div id="contenedor-criterios">
-          <p style="color: #64748b;">Seleccione un curso y un grupo para ver los criterios correspondientes.</p>
+          <p style="color: #64748b;">Seleccione un grupo para ver los criterios correspondientes.</p>
         </div>
       </div>
+
+      <!-- 4. DEFENSA INDIVIDUAL DE INTEGRANTES -->
+      <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
+        <h2 class="section-title" style="margin-top: 0;">4. Defensa Individual (Integrantes del Grupo)</h2>
+        <div id="contenedor-integrantes">
+          <p style="color: #64748b;">Seleccione un grupo para ver los alumnos integrantes y calificar su defensa.</p>
+        </div>
+      </div>
+
+      <button class="btn" style="background-color: #2563eb; color: #fff; width: 100%; padding: 12px; font-size: 1rem;" onclick="guardarCalificaciones()">Guardar y Enviar Calificaciones</button>
     </div>
   </div>
 
@@ -88,6 +101,7 @@
       const seccionEval = document.getElementById('seccion-evaluacion');
       const selectGrupo = document.getElementById('select-grupo-evaluar');
       const contenedorCriterios = document.getElementById('contenedor-criterios');
+      const contenedorIntegrantes = document.getElementById('contenedor-integrantes');
 
       if (!cursoSeleccionado) {
         seccionEval.style.display = 'none';
@@ -95,9 +109,11 @@
       }
 
       seccionEval.style.display = 'block';
+      contenedorCriterios.innerHTML = '<p style="color: #64748b;">Seleccione un grupo para ver los criterios.</p>';
+      contenedorIntegrantes.innerHTML = '<p style="color: #64748b;">Seleccione un grupo para ver los alumnos integrantes.</p>';
 
       // 1. Cargar grupos filtrados por el curso seleccionado
-      const { data: grupos, error: errorGrupos } = await _supabase
+      const { data: grupos, error } = await _supabase
         .from('grupos')
         .select('*')
         .eq('curso', cursoSeleccionado);
@@ -112,25 +128,62 @@
       }
 
       // 2. Cargar criterios de rúbrica filtrados por el curso seleccionado
-      const { data: criterios, error: errorCriterios } = await _supabase
+      const { data: criterios } = await _supabase
         .from('criterios_rubrica')
         .select('*')
         .eq('curso', cursoSeleccionado)
         .order('orden', { ascending: true });
 
-      contenedorCriterios.innerHTML = '';
       if (criterios && criterios.length > 0) {
+        contenedorCriterios.innerHTML = '';
         criterios.forEach(c => {
           contenedorCriterios.innerHTML += `
-            <div style="margin-bottom: 15px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <div style="margin-bottom: 15px; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
               <label><strong>${c.nombre}</strong> (Máx: ${c.puntaje_maximo} pts)</label>
-              <input type="number" class="input-puntaje" data-criterio="${c.id_criterio}" max="${c.puntaje_maximo}" min="0" placeholder="Puntaje obtenido" style="width: 100%; margin-top: 5px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+              <input type="number" class="input-criterio" data-criterio="${c.id_criterio}" max="${c.puntaje_maximo}" min="0" placeholder="Puntaje obtenido" style="width: 100%; margin-top: 5px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
             </div>
           `;
         });
       } else {
         contenedorCriterios.innerHTML = '<p style="color: #64748b;">No hay criterios configurados para este curso todavía.</p>';
       }
+    }
+
+    async function cargarDatosGrupoSeleccionado() {
+      const idGrupo = document.getElementById('select-grupo-evaluar').value;
+      const contenedorIntegrantes = document.getElementById('contenedor-integrantes');
+
+      if (!idGrupo) {
+        contenedorIntegrantes.innerHTML = '<p style="color: #64748b;">Seleccione un grupo para ver los alumnos integrantes.</p>';
+        return;
+      }
+
+      // Cargar los integrantes del grupo desde la tabla relacional grupo_integrantes unida a usuarios
+      const { data: integrantes, error } = await _supabase
+        .from('grupo_integrantes')
+        .select('id_usuario, usuarios(nombre, apellido)')
+        .eq('id_grupo', idGrupo);
+
+      contenedorIntegrantes.innerHTML = '';
+      if (integrantes && integrantes.length > 0) {
+        integrantes.forEach(item => {
+          const alumno = item.usuarios;
+          if (alumno) {
+            contenedorIntegrantes.innerHTML += `
+              <div style="margin-bottom: 15px; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                <span><strong>${alumno.nombre} ${alumno.apellido}</strong></span>
+                <input type="number" class="input-defensa" data-alumno="${item.id_usuario}" min="0" max="10" placeholder="Nota defensa (0-10)" style="width: 180px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+              </div>
+            `;
+          }
+        });
+      } else {
+        contenedorIntegrantes.innerHTML = '<p style="color: #64748b;">Este grupo aún no tiene alumnos asignados.</p>';
+      }
+    }
+
+    function guardarCalificaciones() {
+      alert('Funcionalidad de guardado lista para registrar en Supabase.');
     }
   </script>
 </body>
