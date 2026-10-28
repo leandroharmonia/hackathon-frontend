@@ -1,78 +1,144 @@
+/* RESET Y BASE GENERAL */
+* {
+    box-sizing: border-box;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f0f7ff; /* Fondo celeste claro idéntico al de tus capturas */
+    background-color: #f0f7ff; /* Fondo celeste claro */
     color: #1e293b;
     margin: 0;
     padding: 20px;
 }
 
+/* CONTENEDOR PRINCIPAL */
 .container {
     max-width: 900px;
-    margin: auto;
-    background: #ffffff; /* Contenedor principal blanco */
+    margin: 0 auto;
+    background: #ffffff;
     padding: 30px;
     border-radius: 16px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
     border: 1px solid #dbeafe;
 }
 
-h2 {
+/* HEADER DEL JURADO */
+.header-jurado {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 15px;
+}
+
+.header-jurado h2 {
     color: #1e3a8a;
-    margin-bottom: 5px;
+    margin: 0;
+    font-size: 1.6rem;
 }
 
-p, label {
-    color: #475569;
+.subtitulo-jurado {
+    margin: 4px 0 0 0;
+    font-size: 0.9rem;
+    color: #64748b;
 }
 
+.header-acciones {
+    display: flex;
+    gap: 10px;
+}
+
+/* CAMPOS DE FORMULARIO */
 .form-group {
     margin-bottom: 20px;
 }
 
-label {
+.label-principal, .label-seccion {
     display: block;
     font-weight: 600;
     margin-bottom: 8px;
     color: #1e3a8a;
 }
 
-select, input[type="number"], textarea {
+.label-seccion {
+    font-size: 1.05rem;
+}
+
+.input-select, .input-numero, .input-textarea {
     width: 100%;
     padding: 10px 14px;
-    box-sizing: border-box;
     background-color: #f8fafc;
     border: 1px solid #cbd5e1;
     color: #1e293b;
     border-radius: 8px;
     font-size: 14px;
+    transition: all 0.2s;
 }
 
-select:focus, input:focus, textarea:focus {
+.input-select:focus, .input-numero:focus, .input-textarea:focus {
     border-color: #2563eb;
-    background-color: #fff;
+    background-color: #ffffff;
     outline: none;
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
+/* SECCIONES Y TARJETAS */
 .section-title {
     margin-top: 30px;
     margin-bottom: 15px;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-weight: bold;
     color: #1e3a8a;
     border-bottom: 2px solid #dbeafe;
     padding-bottom: 8px;
 }
 
+.contenedor-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
 .criterio-card, .integrante-card {
-    background: #f8fafc; /* Tarjetas interiores suaves */
-    padding: 15px;
-    margin-bottom: 15px;
+    background: #f8fafc;
+    padding: 16px;
     border-radius: 10px;
     border: 1px solid #e2e8f0;
     border-left: 4px solid #2563eb;
 }
 
+.criterio-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.criterio-titulo {
+    color: #1e3a8a;
+    font-size: 0.95rem;
+}
+
+.criterio-max {
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+.integrante-nombre {
+    color: #2563eb;
+    display: block;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.grid-niveles {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+/* BOTONES */
 .btn-container {
     display: flex;
     gap: 15px;
@@ -89,19 +155,29 @@ button {
     transition: all 0.2s;
 }
 
+button:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.btn-secundario {
+    background-color: #2563eb;
+    color: #ffffff;
+}
+
+.btn-peligro {
+    background-color: #dc2626;
+    color: #ffffff;
+}
+
 .btn-borrador {
-    background-color: #d97706; /* Naranja para guardar borrador */
-    color: #fff;
+    background-color: #d97706;
+    color: #ffffff;
     flex: 1;
 }
 
 .btn-cerrar {
-    background-color: #16a34a; /* Verde para guardado definitivo */
-    color: #fff;
+    background-color: #16a34a;
+    color: #ffffff;
     flex: 1;
-}
-
-button:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
 }
