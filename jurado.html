@@ -278,7 +278,6 @@
 
     async function inicializarJurado() {
         try {
-            // 1. Cargamos los cursos de la tabla 'curso'
             const { data: cursos, error: errCursos } = await db.from('curso').select('*');
             if (errCursos) throw errCursos;
 
@@ -295,7 +294,6 @@
                 });
             }
 
-            // 2. Cargamos los grupos
             const { data: grupos, error: errGrupos } = await db.from('grupos').select('*');
             if (errGrupos) throw errGrupos;
 
@@ -303,7 +301,6 @@
 
         } catch (err) {
             console.error("Error al inicializar datos:", err);
-            alert("Error al cargar los cursos desde la base de datos.");
         }
     }
 
@@ -483,7 +480,8 @@
                 const idAlumno = inputPuntaje.id.replace('ind_puntaje_', '');
 
                 const puntajeInd = parseFloat(inputPuntaje.value) || 0;
-                const comentarioInd = document.getElementById(`ind_comentario_${idAlumno}`).value;
+                const inputCom = document.getElementById(`ind_comentario_${idAlumno}`);
+                const comentarioInd = inputCom ? inputCom.value : '';
 
                 await db.from('defensa_individual').delete()
                     .eq('id_evaluacion', idEvaluacion)
@@ -506,7 +504,7 @@
 
         } catch (error) {
             console.error("Error detallado al guardar:", error);
-            alert("Ocurrió un error al guardar los datos. Revisa la consola (F12) para más detalles.");
+            alert("Error al guardar: " + (error.message || JSON.stringify(error)));
         }
     }
 
