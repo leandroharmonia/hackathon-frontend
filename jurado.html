@@ -3,56 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Jurado</title>
-    <link rel="stylesheet" href="notas.css">
+    <title>Panel de Jurado - Evaluación</title>
+    <link rel="stylesheet" href="jurado.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<div class="texto">
-    <div class="titulos">
-        <h3>SISTEMA DE EVALUACIÓN</h3>
-        <h1>Panel de Evaluación - Jurado</h1>
-        <h4 id="info-jurado">Cargando datos del jurado...</h4>
-    </div>
+<div class="container">
+    <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div>
+            <h2>Panel de Jurado</h2>
+            <p id="info-jurado" style="color: #94a3b8; margin: 0; font-size: 0.9rem;">Cargando datos del jurado...</p>
+        </div>
+        <div>
+            <button onclick="irARankings()" style="background: #3b82f6; color: white; padding: 8px 14px; margin-right: 5px; font-size: 0.9rem;">Ver Rankings</button>
+            <button onclick="cerrarSesion()" style="background: #ef4444; color: white; padding: 8px 14px; font-size: 0.9rem;">Cerrar Sesión</button>
+        </div>
+    </header>
 
-    <div style="margin-bottom: 20px;">
-        <label for="select-grupo" style="font-weight: bold; color: #333;">Seleccionar Grupo a Evaluar:</label>
-        <select id="select-grupo" onchange="cargarDatosEvaluacion()" style="padding: 6px; border-radius: 4px; margin-left: 10px;">
+    <div class="form-group">
+        <label for="select-grupo">Seleccionar Grupo a Evaluar:</label>
+        <select id="select-grupo" onchange="cargarDatosEvaluacion()">
             <option value="">-- Seleccione un grupo --</option>
         </select>
     </div>
 
     <div id="seccion-evaluacion" style="display: none;">
-        <h3>Criterios de Evaluación Grupal</h3>
-        <div id="lista-criterios" class="puntajesi" style="margin-bottom: 20px;">
-            <!-- Se cargan dinámicamente -->
+        <h3 class="section-title" id="titulo-grupo-activo">Evaluando equipo</h3>
+
+        <!-- CRITERIOS DE RÚBRICA GRUPAL -->
+        <div class="form-group">
+            <label>Criterios de Evaluación Grupal</label>
+            <div id="lista-criterios">
+                <!-- Se cargan dinámicamente con la clase .criterio-card -->
+            </div>
         </div>
 
-        <h3>Evaluación Individual de Integrantes</h3>
-        <div id="lista-integrantes-defensa" class="puntajesg" style="margin-bottom: 20px;">
-            <!-- Se cargan dinámicamente -->
+        <!-- DEFENSA INDIVIDUAL / NIVELES -->
+        <div class="form-group">
+            <label>Evaluación Individual de Integrantes (Defensa)</label>
+            <div id="lista-integrantes-defensa">
+                <!-- Se cargan dinámicamente con la clase .integrante-card -->
+            </div>
         </div>
 
-        <div style="margin-bottom: 20px;">
-            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Comentarios Generales:</label>
-            <textarea id="comentario-general" rows="3" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;" placeholder="Escribe observaciones para el grupo..."></textarea>
+        <!-- COMENTARIOS GENERALES -->
+        <div class="form-group">
+            <label for="comentario-general">Comentarios Generales:</label>
+            <textarea id="comentario-general" rows="3" placeholder="Escribe observaciones para el grupo..."></textarea>
         </div>
 
-        <!-- BOTONES DE GUARDADO -->
-        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-bottom: 25px;">
-            <button onclick="guardarEvaluacion('en proceso')" style="background: rgba(245, 158, 11, 0.2); color: #d97706; border: 1px solid #f59e0b; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold;">💾 Guardar Borrador (En Proceso)</button>
-            <button onclick="guardarEvaluacion('terminado')" style="background: rgba(16, 185, 129, 0.2); color: #059669; border: 1px solid #10b981; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold;">✅ Guardar Definitivo (Terminado)</button>
+        <!-- BOTONES DE GUARDADO CON TUS CLASES CSS -->
+        <div class="btn-container">
+            <button type="button" class="btn-borrador" onclick="guardarEvaluacion('en proceso')">💾 Guardar Borrador (En Proceso)</button>
+            <button type="button" class="btn-cerrar" onclick="guardarEvaluacion('terminado')">✅ Guardar Definitivo (Terminado)</button>
         </div>
-    </div>
-
-    <div style="display: flex; gap: 10px; margin-top: 25px;">
-        <button onclick="irARankings()" style="background: rgba(59,130,246,0.2); color: #2563eb; border: 1px solid #3b82f6; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold;">Ver Rankings</button>
-        <button onclick="cerrarSesion()" style="background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid #f87171; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold;">Cerrar Sesión</button>
     </div>
 </div>
-
-<img src="img/Grupos.jpg" alt="Imagen de fondo" class="imagen-fondo">
 
 <script>
     const SUPABASE_URL = "https://lunpcumjmkbetdccsmuo.supabase.co";
@@ -102,22 +109,25 @@
         }
         seccion.style.display = 'block';
 
-        // 1. Cargar criterios de rúbrica
+        // 1. Cargar criterios de rúbrica usando tu clase .criterio-card
         const { data: criterios } = await db.from('criterios_rubrica').select('*');
         const divCriterios = document.getElementById('lista-criterios');
         divCriterios.innerHTML = '';
         if (criterios) {
             criterios.forEach(c => {
                 divCriterios.innerHTML += `
-                    <div style="background: rgba(19, 34, 71, 0.9); border: 1px solid #1e3a75; padding: 10px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; color: #fff;">
-                        <span>${c.nombre} (Máx: ${c.puntaje_maximo} pts)</span>
-                        <input type="number" id="criterio_${c.id_criterio}" min="0" max="${c.puntaje_maximo}" placeholder="Puntaje" style="width: 90px; padding: 6px; border-radius: 4px; border: 1px solid #ccc;">
+                    <div class="criterio-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <strong>${c.nombre}</strong>
+                            <span style="font-size: 0.85rem; color: #94a3b8;">Máx: ${c.puntaje_maximo} pts</span>
+                        </div>
+                        <input type="number" id="criterio_${c.id_criterio}" min="0" max="${c.puntaje_maximo}" placeholder="Puntaje obtenido">
                     </div>
                 `;
             });
         }
 
-        // 2. Cargar integrantes del grupo para defensa individual
+        // 2. Cargar integrantes del grupo usando tu clase .integrante-card
         const { data: integrantes } = await db
             .from('grupo_integrantes')
             .select('id_alumno, usuarios(id_usuario, nombre, apellido)')
@@ -130,13 +140,13 @@
                 const alumno = item.usuarios;
                 if (alumno) {
                     divIntegrantes.innerHTML += `
-                        <div style="background: rgba(19, 34, 71, 0.9); border: 1px solid #1e3a75; padding: 12px; border-radius: 8px; margin-bottom: 10px; color: #fff;">
-                            <strong style="color: #60a5fa;">${alumno.nombre} ${alumno.apellido}</strong>
-                            <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
-                                <input type="number" id="ind_n1_${alumno.id_usuario}" placeholder="N1 (0-5)" style="width: 90px; padding: 6px; border-radius: 4px;">
-                                <input type="number" id="ind_n2_${alumno.id_usuario}" placeholder="N2 (0-5)" style="width: 90px; padding: 6px; border-radius: 4px;">
-                                <input type="number" id="ind_n3_${alumno.id_usuario}" placeholder="N3 (0-5)" style="width: 90px; padding: 6px; border-radius: 4px;">
-                                <input type="number" id="ind_vivo_${alumno.id_usuario}" placeholder="Vivo (0-10)" style="width: 95px; padding: 6px; border-radius: 4px;">
+                        <div class="integrante-card">
+                            <strong style="color: #60a5fa; display: block; margin-bottom: 8px;">${alumno.nombre} ${alumno.apellido}</strong>
+                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                                <input type="number" id="ind_n1_${alumno.id_usuario}" placeholder="Nivel 1 (0-5)">
+                                <input type="number" id="ind_n2_${alumno.id_usuario}" placeholder="Nivel 2 (0-5)">
+                                <input type="number" id="ind_n3_${alumno.id_usuario}" placeholder="Nivel 3 (0-5)">
+                                <input type="number" id="ind_vivo_${alumno.id_usuario}" placeholder="Vivo (0-10)">
                             </div>
                         </div>
                     `;
@@ -144,7 +154,7 @@
             });
         }
 
-        // 3. Cargar datos si ya existen en la base de datos
+        // 3. Cargar evaluación existente si la hay
         const { data: evalExistente } = await db
             .from('evaluaciones')
             .select('*')
@@ -154,11 +164,11 @@
 
         if (evalExistente) {
             document.getElementById('comentario-general').value = evalExistente.comentario_general || '';
-
-            // Cargar puntajes de criterios si existen
+            
+            // Cargar detalles guardados si existen
             const { data: detalles } = await db
                 .from('evaluacion_detalle')
-                .select('*')
+                .select('id_criterio, puntaje')
                 .eq('id_evaluacion', evalExistente.id_evaluacion);
 
             if (detalles) {
@@ -168,7 +178,7 @@
                 });
             }
 
-            // Cargar defensa individual si existe
+            // Cargar defensas individuales guardadas
             const { data: defensas } = await db
                 .from('defensa_individual')
                 .select('*')
@@ -176,10 +186,15 @@
 
             if (defensas) {
                 defensas.forEach(def => {
-                    if(document.getElementById(`ind_n1_${def.id_alumno}`)) document.getElementById(`ind_n1_${def.id_alumno}`).value = def.nivel_1 || '';
-                    if(document.getElementById(`ind_n2_${def.id_alumno}`)) document.getElementById(`ind_n2_${def.id_alumno}`).value = def.nivel_2 || '';
-                    if(document.getElementById(`ind_n3_${def.id_alumno}`)) document.getElementById(`ind_n3_${def.id_alumno}`).value = def.nivel_3 || '';
-                    if(document.getElementById(`ind_vivo_${def.id_alumno}`)) document.getElementById(`ind_vivo_${def.id_alumno}`).value = def.cambio_vivo || '';
+                    const inpN1 = document.getElementById(`ind_n1_${def.id_alumno}`);
+                    const inpN2 = document.getElementById(`ind_n2_${def.id_alumno}`);
+                    const inpN3 = document.getElementById(`ind_n3_${def.id_alumno}`);
+                    const inpVivo = document.getElementById(`ind_vivo_${def.id_alumno}`);
+
+                    if (inpN1) inpN1.value = def.nivel_1 || 0;
+                    if (inpN2) inpN2.value = def.nivel_2 || 0;
+                    if (inpN3) inpN3.value = def.nivel_3 || 0;
+                    if (inpVivo) inpVivo.value = def.cambio_vivo || 0;
                 });
             }
         }
@@ -196,6 +211,7 @@
         }
 
         try {
+            // Verificar si ya existe una evaluación de este jurado para este grupo
             const { data: evalActual } = await db
                 .from('evaluaciones')
                 .select('id_evaluacion')
@@ -223,8 +239,8 @@
                 idEvaluacion = nuevaEval.id_evaluacion;
             }
 
+            // Guardar detalles de rúbrica
             await db.from('evaluacion_detalle').delete().eq('id_evaluacion', idEvaluacion);
-
             const inputsCriterios = document.querySelectorAll('#lista-criterios input');
             for (let input of inputsCriterios) {
                 const idCriterio = input.id.replace('criterio_', '');
@@ -237,6 +253,7 @@
                 }]);
             }
 
+            // Guardar defensa individual
             const contenedoresAlumnos = document.querySelectorAll('#lista-integrantes-defensa > div');
             for (let cont of contenedoresAlumnos) {
                 const inputN1 = cont.querySelector('input[id^="ind_n1_"]');
