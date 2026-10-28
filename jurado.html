@@ -9,6 +9,12 @@
 
   <!-- Enlace al archivo CSS externo unificado -->
   <link rel="stylesheet" href="css/jurado.css">
+  <style>
+    .tabla-defensa { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+    .tabla-defensa th, .tabla-defensa td { border: 1px solid #cbd5e1; padding: 8px; text-align: center; }
+    .tabla-defensa th { background: #f1f5f9; color: #1e293b; font-size: 0.8rem; }
+    .input-nivel { width: 60px; padding: 6px; text-align: center; border: 1px solid #cbd5e1; border-radius: 4px; }
+  </style>
 </head>
 <body>
 
@@ -58,19 +64,29 @@
         </div>
       </div>
 
-      <!-- 3. CRITERIOS DE EVALUACIÓN DE LA RÚBRICA -->
+      <!-- 3. CRITERIOS DE EVALUACIÓN DE LA RÚBRICA (GRUPAL) -->
       <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
-        <h2 class="section-title" style="margin-top: 0;">3. Criterios de Evaluación del Proyecto</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <h2 class="section-title" style="margin: 0;">3. Criterios de Evaluación del Proyecto (Grupal)</h2>
+          <span style="font-size: 0.9rem; font-weight: bold; color: #2563eb; background: #eff6ff; padding: 5px 12px; border-radius: 8px; border: 1px solid #bfdbfe;">
+            Total Grupal: <span id="lbl-total-grupal">0</span> pts
+          </span>
+        </div>
         <div id="contenedor-criterios">
           <p style="color: #64748b;">Seleccione un grupo para ver los criterios correspondientes.</p>
         </div>
       </div>
 
-      <!-- 4. DEFENSA INDIVIDUAL DE INTEGRANTES -->
+      <!-- 4. DEFENSA INDIVIDUAL / EN VIVO -->
       <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
-        <h2 class="section-title" style="margin-top: 0;">4. Defensa Individual (Integrantes del Grupo)</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <h2 class="section-title" style="margin: 0;">4. Defensa Individual (Integrantes)</h2>
+          <span id="contenedor-badge-total-defensa" style="font-size: 0.9rem; font-weight: bold; color: #16a34a; background: #f0fdf4; padding: 5px 12px; border-radius: 8px; border: 1px solid #bbf7d0; display: none;">
+            Promedio Defensa: <span id="lbl-total-defensa">0</span> pts
+          </span>
+        </div>
         <div id="contenedor-integrantes">
-          <p style="color: #64748b;">Seleccione un grupo para ver los alumnos integrantes y calificar su defensa.</p>
+          <p style="color: #64748b;">Seleccione un grupo para ver los alumnos integrantes.</p>
         </div>
       </div>
 
@@ -102,6 +118,8 @@
       const selectGrupo = document.getElementById('select-grupo-evaluar');
       const contenedorCriterios = document.getElementById('contenedor-criterios');
       const contenedorIntegrantes = document.getElementById('contenedor-integrantes');
+      document.getElementById('lbl-total-grupal').innerText = '0';
+      document.getElementById('contenedor-badge-total-defensa').style.display = 'none';
 
       if (!cursoSeleccionado) {
         seccionEval.style.display = 'none';
@@ -112,8 +130,7 @@
       contenedorCriterios.innerHTML = '<p style="color: #64748b;">Seleccione un grupo para ver los criterios.</p>';
       contenedorIntegrantes.innerHTML = '<p style="color: #64748b;">Seleccione un grupo para ver los alumnos integrantes.</p>';
 
-      // 1. Cargar grupos filtrados por el curso seleccionado
-      const { data: grupos, error } = await _supabase
+      const { data: grupos } = await _supabase
         .from('grupos')
         .select('*')
         .eq('curso', cursoSeleccionado);
@@ -127,7 +144,6 @@
         selectGrupo.innerHTML = '<option value="">No hay grupos registrados para este curso</option>';
       }
 
-      // 2. Cargar criterios de rúbrica filtrados por el curso seleccionado
       const { data: criterios } = await _supabase
         .from('criterios_rubrica')
         .select('*')
@@ -140,7 +156,7 @@
           contenedorCriterios.innerHTML += `
             <div style="margin-bottom: 15px; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
               <label><strong>${c.nombre}</strong> (Máx: ${c.puntaje_maximo} pts)</label>
-              <input type="number" class="input-criterio" data-criterio="${c.id_criterio}" max="${c.puntaje_maximo}" min="0" placeholder="Puntaje obtenido" style="width: 100%; margin-top: 5px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+              <input type="number" class="input-criterio" data-criterio="${c.id_criterio}" max="${c.puntaje_maximo}" min="0" placeholder="Puntaje obtenido" style="width: 100%; margin-top: 5px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;" oninput="calcularTotalGrupal()">
             </div>
           `;
         });
@@ -151,39 +167,126 @@
 
     async function cargarDatosGrupoSeleccionado() {
       const idGrupo = document.getElementById('select-grupo-evaluar').value;
+      const cursoSeleccionado = document.getElementById('filtro-curso').value;
       const contenedorIntegrantes = document.getElementById('contenedor-integrantes');
+      const badgeDefensa = document.getElementById('contenedor-badge-total-defensa');
 
       if (!idGrupo) {
         contenedorIntegrantes.innerHTML = '<p style="color: #64748b;">Seleccione un grupo para ver los alumnos integrantes.</p>';
+        badgeDefensa.style.display = 'none';
         return;
       }
 
-      // Cargar los integrantes del grupo desde la tabla relacional grupo_integrantes unida a usuarios
-      const { data: integrantes, error } = await _supabase
+      const { data: integrantes } = await _supabase
         .from('grupo_integrantes')
         .select('id_usuario, usuarios(nombre, apellido)')
         .eq('id_grupo', idGrupo);
 
-      contenedorIntegrantes.innerHTML = '';
-      if (integrantes && integrantes.length > 0) {
+      if (!integrantes || integrantes.length === 0) {
+        contenedorIntegrantes.innerHTML = '<p style="color: #64748b;">Este grupo aún no tiene alumnos asignados.</p>';
+        badgeDefensa.style.display = 'none';
+        return;
+      }
+
+      badgeDefensa.style.display = 'block';
+
+      if (cursoSeleccionado === '7mo Año') {
+        let htmlTabla = `
+          <table class="tabla-defensa">
+            <thead>
+              <tr>
+                <th>Integrante</th>
+                <th>Nivel 1 (0-5)</th>
+                <th>Nivel 2 (0-5)</th>
+                <th>Nivel 3 (0-5)</th>
+                <th>Cambio en vivo / Pizarra (0-10)</th>
+                <th>Total (0-25)</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        integrantes.forEach(item => {
+          const alumno = item.usuarios;
+          if (alumno) {
+            htmlTabla += `
+              <tr data-alumno="${item.id_usuario}">
+                <td style="text-align: left; font-weight: bold;">${alumno.nombre} ${alumno.apellido}</td>
+                <td><input type="number" class="input-nivel n1" min="0" max="5" value="0" oninput="calcularTotalFila7mo(this)"></td>
+                <td><input type="number" class="input-nivel n2" min="0" max="5" value="0" oninput="calcularTotalFila7mo(this)"></td>
+                <td><input type="number" class="input-nivel n3" min="0" max="5" value="0" oninput="calcularTotalFila7mo(this)"></td>
+                <td><input type="number" class="input-nivel vivo" min="0" max="10" value="0" oninput="calcularTotalFila7mo(this)"></td>
+                <td><strong class="total-alumno">0</strong> / 25</td>
+              </tr>
+            `;
+          }
+        });
+
+        htmlTabla += `</tbody></table>`;
+        contenedorIntegrantes.innerHTML = htmlTabla;
+        calcularTotalPromedioDefensa();
+      } else {
+        contenedorIntegrantes.innerHTML = '';
         integrantes.forEach(item => {
           const alumno = item.usuarios;
           if (alumno) {
             contenedorIntegrantes.innerHTML += `
               <div style="margin-bottom: 15px; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
                 <span><strong>${alumno.nombre} ${alumno.apellido}</strong></span>
-                <input type="number" class="input-defensa" data-alumno="${item.id_usuario}" min="0" max="10" placeholder="Nota defensa (0-10)" style="width: 180px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                <input type="number" class="input-defensa" data-alumno="${item.id_usuario}" min="0" max="10" placeholder="Nota defensa (0-10)" style="width: 180px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;" oninput="calcularTotalPromedioDefensa()">
               </div>
             `;
           }
         });
-      } else {
-        contenedorIntegrantes.innerHTML = '<p style="color: #64748b;">Este grupo aún no tiene alumnos asignados.</p>';
       }
     }
 
+    function calcularTotalGrupal() {
+      const inputs = document.querySelectorAll('.input-criterio');
+      let suma = 0;
+      inputs.forEach(inp => {
+        suma += parseFloat(inp.value) || 0;
+      });
+      document.getElementById('lbl-total-grupal').innerText = suma;
+    }
+
+    function calcularTotalFila7mo(input) {
+      const fila = input.closest('tr');
+      const n1 = parseFloat(fila.querySelector('.n1').value) || 0;
+      const n2 = parseFloat(fila.querySelector('.n2').value) || 0;
+      const n3 = parseFloat(fila.querySelector('.n3').value) || 0;
+      const vivo = parseFloat(fila.querySelector('.vivo').value) || 0;
+      
+      const total = n1 + n2 + n3 + vivo;
+      fila.querySelector('.total-alumno').innerText = total;
+      calcularTotalPromedioDefensa();
+    }
+
+    function calcularTotalPromedioDefensa() {
+      const cursoSeleccionado = document.getElementById('filtro-curso').value;
+      let sumaTotal = 0;
+      let cantidad = 0;
+
+      if (cursoSeleccionado === '7mo Año') {
+        const totalesAlumnos = document.querySelectorAll('.total-alumno');
+        totalesAlumnos.forEach(el => {
+          sumaTotal += parseFloat(el.innerText) || 0;
+          cantidad++;
+        });
+      } else {
+        const inputsDefensa = document.querySelectorAll('.input-defensa');
+        inputsDefensa.forEach(inp => {
+          sumaTotal += parseFloat(inp.value) || 0;
+          cantidad++;
+        });
+      }
+
+      const promedio = cantidad > 0 ? (sumaTotal / cantidad).toFixed(1) : 0;
+      document.getElementById('lbl-total-defensa').innerText = promedio;
+    }
+
     function guardarCalificaciones() {
-      alert('Funcionalidad de guardado lista para registrar en Supabase.');
+      alert('Calificaciones de rúbrica grupal y defensa individual listas para guardar.');
     }
   </script>
 </body>
