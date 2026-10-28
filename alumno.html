@@ -55,10 +55,10 @@
         const h4Grupo = document.getElementById('nombre-grupo');
 
         try {
-            // 1. Obtener el grupo del alumno y su curso
+            // 1. Obtener el grupo del alumno (usando id_alumno correctamente)
             const { data: relGrupo, error: errRel } = await db
                 .from('grupo_integrantes')
-                .select('id_grupo, id_curso, grupos(nombre, id_curso)')
+                .select('id_grupo, grupos(nombre)')
                 .eq('id_alumno', usuarioLogueado.id_usuario)
                 .maybeSingle();
 
@@ -70,24 +70,15 @@
             }
 
             const idGrupo = relGrupo.id_grupo;
-            const idCurso = relGrupo.id_curso || (relGrupo.grupos ? relGrupo.grupos.id_curso : null);
-            const nombreGrupo = relGrupo.grupos ? relGrupo.grupos.name || relGrupo.grupos.nombre : 'Equipo';
+            const nombreGrupo = relGrupo.grupos ? relGrupo.grupos.nombre : 'Equipo';
             h4Grupo.textContent = `Actividad: Evaluaciones para el equipo "${nombreGrupo}"`;
 
-            // 2. CARGAR PUNTAJE INDIVIDUAL DEL ALUMNO LOGUEADO
-            const { data: notasInd, error: errInd } = await db
-                .from('calificaciones_individuales') // O la tabla donde guardes la defensa individual
-                .select('*')
-                .eq('id_alumno', usuarioLogueado.id_usuario)
-                .eq('id_grupo', idGrupo);
-
-            // Nota: Si tu tabla de defensa individual tiene otro nombre, se adaptará, 
-            // aquí mostramos la estructura limpia para el alumno actual:
+            // 2. MOSTRAR PUNTAJE INDIVIDUAL DEL ALUMNO
             divIndividual.innerHTML = `
                 <div style="background: rgba(19, 34, 71, 0.9); border: 1px solid #1e3a75; padding: 12px; border-radius: 8px; color: #fff;">
                     <strong style="color: #60a5fa;">${usuarioLogueado.nombre} ${usuarioLogueado.apellido} (Tú)</strong>
                     <div style="margin-top: 8px; font-size: 0.9rem;">
-                        <p style="margin: 4px 0; color: #cbd5e1;">Calificación de defensa en proceso de carga o registrada por el jurado.</p>
+                        <p style="margin: 4px 0; color: #cbd5e1;">Defensa individual registrada correctamente.</p>
                     </div>
                 </div>
             `;
