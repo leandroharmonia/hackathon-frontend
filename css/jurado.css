@@ -1,106 +1,75 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
 body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background-color: #ffffff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f7ff; /* Fondo celeste claro idéntico al de tus capturas */
     color: #1e293b;
     margin: 0;
-    padding: 40px 20px;
-    min-height: 100vh;
+    padding: 20px;
 }
 
-/* Botón de cerrar sesión en la esquina superior derecha */
-.btn-logout-top {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: #fee2e2;
-    color: #dc2626;
-    border: 1px solid #f87171;
-    padding: 8px 14px;
-    border-radius: 20px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    z-index: 1000;
-}
-
-.btn-logout-top:hover {
-    background: #fecaca;
-    transform: translateY(-1px);
-}
-
-/* Contenedor principal con fondo azul claro */
 .container {
-    max-width: 850px;
+    max-width: 900px;
     margin: auto;
-    background: #e0f2fe;
-    padding: 35px;
+    background: #ffffff; /* Contenedor principal blanco */
+    padding: 30px;
     border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    border: 1px solid #bae6fd;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    border: 1px solid #dbeafe;
 }
 
-/* Título del panel */
-.titulo-evaluador {
-    font-size: 1.6rem;
-    font-weight: 800;
-    text-align: center;
+h2 {
     color: #1e3a8a;
-    margin-bottom: 25px;
-    letter-spacing: -0.5px;
+    margin-bottom: 5px;
+}
+
+p, label {
+    color: #475569;
 }
 
 .form-group {
     margin-bottom: 20px;
 }
 
-/* Etiquetas grandes y de color negro */
 label {
     display: block;
-    font-weight: 700;
-    font-size: 1.05rem;
+    font-weight: 600;
     margin-bottom: 8px;
-    color: #000000; /* Color negro puro para las etiquetas */
+    color: #1e3a8a;
 }
 
-/* Campos desplegables y de texto con fondo GRIS y letras oscuras */
 select, input[type="number"], textarea {
     width: 100%;
-    padding: 12px;
+    padding: 10px 14px;
     box-sizing: border-box;
-    background-color: #f1f5f9; /* Fondo gris claro moderno */
-    border: 1px solid #94a3b8;
-    color: #0f172a; /* Letras oscuras legibles */
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1;
+    color: #1e293b;
     border-radius: 8px;
     font-size: 14px;
-    transition: border-color 0.2s;
 }
 
 select:focus, input:focus, textarea:focus {
     border-color: #2563eb;
+    background-color: #fff;
     outline: none;
-    background-color: #ffffff; /* Se aclaran un poco al hacer clic para editar */
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .section-title {
     margin-top: 30px;
     margin-bottom: 15px;
-    border-bottom: 2px solid #bae6fd;
-    padding-bottom: 8px;
-    color: #1e3a8a;
-    font-weight: 700;
     font-size: 1.1rem;
+    font-weight: bold;
+    color: #1e3a8a;
+    border-bottom: 2px solid #dbeafe;
+    padding-bottom: 8px;
 }
 
 .criterio-card, .integrante-card {
-    background: #f0f9ff;
-    padding: 16px;
+    background: #f8fafc; /* Tarjetas interiores suaves */
+    padding: 15px;
     margin-bottom: 15px;
     border-radius: 10px;
-    border: 1px solid #bae6fd;
+    border: 1px solid #e2e8f0;
     border-left: 4px solid #2563eb;
 }
 
@@ -110,28 +79,29 @@ select:focus, input:focus, textarea:focus {
     margin-top: 30px;
 }
 
-button.btn-borrador, button.btn-cerrar {
-    flex: 1;
-    padding: 14px;
+button {
+    padding: 12px 20px;
     border: none;
     font-weight: bold;
     cursor: pointer;
     border-radius: 8px;
-    font-size: 15px;
-    transition: all 0.2s ease;
+    font-size: 14px;
+    transition: all 0.2s;
 }
 
 .btn-borrador {
-    background-color: #d97706;
+    background-color: #d97706; /* Naranja para guardar borrador */
     color: #fff;
+    flex: 1;
 }
 
 .btn-cerrar {
-    background-color: #16a34a;
+    background-color: #16a34a; /* Verde para guardado definitivo */
     color: #fff;
+    flex: 1;
 }
 
 button:hover {
-    opacity: 0.92;
+    opacity: 0.9;
     transform: translateY(-1px);
 }
