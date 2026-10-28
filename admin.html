@@ -239,9 +239,10 @@
         return;
       }
 
+      // CORREGIDO: Se usa id_alumno en lugar de id_usuario para que coincida con Supabase
       const { error } = await _supabase
         .from('grupo_integrantes')
-        .insert([{ id_grupo: idGrupo, id_usuario: idUsuario }]);
+        .insert([{ id_grupo: idGrupo, id_alumno: idUsuario }]);
 
       if (error) {
         alert('Error al asignar alumno (puede que ya esté en el grupo): ' + error.message);

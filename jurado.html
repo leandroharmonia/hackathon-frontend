@@ -176,7 +176,7 @@
 
       const { data: integrantes } = await _supabase
         .from('grupo_integrantes')
-        .select('id_usuario, usuarios(nombre, apellido)')
+        .select('id_alumno, usuarios(nombre, apellido)')
         .eq('id_grupo', idGrupo);
 
       if (!integrantes || integrantes.length === 0) {
@@ -207,7 +207,7 @@
           const alumno = item.usuarios;
           if (alumno) {
             htmlTabla += `
-              <tr data-alumno="${item.id_usuario}">
+              <tr data-alumno="${item.id_alumno}">
                 <td style="text-align: left; font-weight: bold;">${alumno.nombre} ${alumno.apellido}</td>
                 <td><input type="number" class="input-nivel n1" min="0" max="5" value="0" oninput="calcularTotalFila7mo(this)"></td>
                 <td><input type="number" class="input-nivel n2" min="0" max="5" value="0" oninput="calcularTotalFila7mo(this)"></td>
@@ -230,7 +230,7 @@
             contenedorIntegrantes.innerHTML += `
               <div style="margin-bottom: 15px; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
                 <span><strong>${alumno.nombre} ${alumno.apellido}</strong></span>
-                <input type="number" class="input-defensa" data-alumno="${item.id_usuario}" min="0" max="10" placeholder="Nota defensa (0-10)" style="width: 180px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;" oninput="calcularTotalPromedioDefensa()">
+                <input type="number" class="input-defensa" data-alumno="${item.id_alumno}" min="0" max="10" placeholder="Nota defensa (0-10)" style="width: 180px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;" oninput="calcularTotalPromedioDefensa()">
               </div>
             `;
           }
