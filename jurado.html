@@ -209,10 +209,19 @@
         </div>
     </header>
 
+    <!-- PASO 1: SELECCIONAR CURSO / AÑO -->
+    <div class="form-group">
+        <label for="select-curso">Curso / Año Destino:</label>
+        <select id="select-curso" onchange="filtrarGruposPorCurso()">
+            <option value="">-- Seleccionar Curso --</option>
+        </select>
+    </div>
+
+    <!-- PASO 2: SELECCIONAR GRUPO DEL CURSO -->
     <div class="form-group">
         <label for="select-grupo">Seleccionar Grupo a Evaluar:</label>
-        <select id="select-grupo" onchange="cargarDatosEvaluacion()">
-            <option value="">-- Seleccione un grupo --</option>
+        <select id="select-grupo" onchange="cargarDatosEvaluacion()" disabled>
+            <option value="">-- Primero seleccione un curso --</option>
         </select>
     </div>
 
@@ -246,6 +255,8 @@
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1bnBjdW1qbWtiZXRkY2NzbXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODc1MjcsImV4cCI6MjEwNzU2MzUyN30.MyP9ADhCM8LBP7jvtRs-rUX1n-MYShBMA5qtFRMH3Xc";
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    let listaGlobalGrupos = [];
+
     const usuarioLogueado = JSON.parse(sessionStorage.getItem("usuario"));
     if (!usuarioLogueado || usuarioLogueado.rol !== "jurado") {
         alert("Acceso denegado. Debe iniciar sesión como Jurado.");
@@ -265,19 +276,50 @@
 
     async function inicializarJurado() {
         try {
-            const { data: grupos, error } = await db.from('grupos').select('id_grupo, nombre');
+            // Traemos los grupos con su respectivo curso (asumiendo columna 'curso')
+            const { data: grupos, error } = await db.from('grupos').select('id_grupo, nombre, curso');
             if (error) throw error;
 
-            const select = document.getElementById('select-grupo');
-            grupos.forEach(g => {
+            listaGlobalGrupos = grupos || [];
+
+            // Extraer cursos únicos para el primer select
+            const cursosUnicos = [...new Set(listaGlobalGrupos.map(g => g.curso))].filter(Boolean);
+            const selectCurso = document.getElementById('select-curso');
+
+            cursosUnicos.forEach(curso => {
                 const opt = document.createElement('option');
-                opt.value = g.id_grupo;
-                opt.textContent = g.nombre;
-                select.appendChild(opt);
+                opt.value = curso;
+                opt.textContent = curso;
+                selectCurso.appendChild(opt);
             });
         } catch (err) {
-            console.error("Error al cargar grupos:", err);
+            console.error("Error al cargar cursos y grupos:", err);
         }
+    }
+
+    function filtrarGruposPorCurso() {
+        const cursoSeleccionado = document.getElementById('select-curso').value;
+        const selectGrupo = document.getElementById('select-grupo');
+        const seccion = document.getElementById('seccion-evaluacion');
+
+        selectGrupo.innerHTML = '<option value="">-- Seleccione un grupo --</option>';
+        seccion.style.display = 'none';
+
+        if (!cursoSeleccionado) {
+            selectGrupo.disabled = true;
+            selectGrupo.innerHTML = '<option value="">-- Primero seleccione un curso --</option>';
+            return;
+        }
+
+        selectGrupo.disabled = false;
+        const gruposFiltrados = listaGlobalGrupos.filter(g => g.curso === cursoSeleccionado);
+
+        gruposFiltrados.forEach(g => {
+            const opt = document.createElement('option');
+            opt.value = g.id_grupo;
+            opt.textContent = g.nombre;
+            selectGrupo.appendChild(opt);
+        });
     }
 
     async function cargarDatosEvaluacion() {
