@@ -6,8 +6,6 @@
   <title>Panel de Jurado - Gestión de Hackathon</title>
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- Enlace al archivo CSS externo unificado -->
   <link rel="stylesheet" href="css/jurado.css">
   <style>
     .tabla-defensa { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
@@ -18,7 +16,6 @@
 </head>
 <body>
 
-  <!-- Botón de cerrar sesión flotante superior -->
   <button class="btn-logout-top" onclick="cerrarSesion()">Cerrar Sesión</button>
 
   <div class="container">
@@ -190,7 +187,6 @@
 
       badgeDefensa.style.display = 'block';
 
-      // Si el id_curso es 7 (7mo Año), mostramos la tabla detallada de niveles
       if (idCursoSeleccionado === "7") {
         let htmlTabla = `
           <table class="tabla-defensa">

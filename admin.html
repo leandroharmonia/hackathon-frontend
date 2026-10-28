@@ -6,13 +6,10 @@
   <title>Panel de Administración - Gestión de Hackathon</title>
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- Enlace al archivo CSS externo unificado -->
   <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
 
-  <!-- Botón de cerrar sesión flotante superior -->
   <button class="btn-logout-top" onclick="cerrarSesion()">Cerrar Sesión</button>
 
   <div class="container">
@@ -26,7 +23,7 @@
       </div>
     </div>
 
-    <!-- 1. CREAR Y GESTIONAR GRUPOS (Con selección de curso 1ro a 7mo) -->
+    <!-- 1. CREAR Y GESTIONAR GRUPOS -->
     <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
       <h2 class="section-title" style="margin-top: 0;">1. Registrar Nuevo Grupo</h2>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
@@ -38,13 +35,13 @@
           <label for="grupo-curso">Curso / Año del Grupo:</label>
           <select id="grupo-curso">
             <option value="">-- Seleccionar Curso --</option>
-            <option value="1er Año">1er Año</option>
-            <option value="2do Año">2do Año</option>
-            <option value="3er Año">3er Año</option>
-            <option value="4to Año">4to Año</option>
-            <option value="5to Año">5to Año</option>
-            <option value="6to Año">6to Año</option>
-            <option value="7mo Año">7mo Año</option>
+            <option value="1">1er Año</option>
+            <option value="2">2do Año</option>
+            <option value="3">3er Año</option>
+            <option value="4">4to Año</option>
+            <option value="5">5to Año</option>
+            <option value="6">6to Año</option>
+            <option value="7">7mo Año</option>
           </select>
         </div>
         <div>
@@ -57,7 +54,7 @@
       <button class="btn" style="background-color: #2563eb; color: #fff; width: auto; padding: 10px 20px;" onclick="crearGrupo()">Guardar Equipo</button>
     </div>
 
-    <!-- 2. DEFINIR RÚBRICA DE EVALUACIÓN (Por Curso de 1ro a 7mo) -->
+    <!-- 2. DEFINIR RÚBRICA DE EVALUACIÓN -->
     <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
       <h2 class="section-title" style="margin-top: 0;">2. Definir Criterios de Evaluación (Rúbrica)</h2>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px;">
@@ -65,13 +62,13 @@
           <label for="criterio-curso">Curso / Año Destino:</label>
           <select id="criterio-curso">
             <option value="">-- Seleccionar Curso --</option>
-            <option value="1er Año">1er Año</option>
-            <option value="2do Año">2do Año</option>
-            <option value="3er Año">3er Año</option>
-            <option value="4to Año">4to Año</option>
-            <option value="5to Año">5to Año</option>
-            <option value="6to Año">6to Año</option>
-            <option value="7mo Año">7mo Año</option>
+            <option value="1">1er Año</option>
+            <option value="2">2do Año</option>
+            <option value="3">3er Año</option>
+            <option value="4">4to Año</option>
+            <option value="5">5to Año</option>
+            <option value="6">6to Año</option>
+            <option value="7">7mo Año</option>
           </select>
         </div>
         <div style="grid-column: span 2;">
@@ -110,7 +107,7 @@
       <button class="btn" style="background-color: #2563eb; color: #fff; width: auto; padding: 10px 20px;" onclick="asignarAlumnoGrupo()">Vincular Alumno al Grupo</button>
     </div>
 
-    <!-- 4. VER RANKING EN TIEMPO REAL -->
+    <!-- 4. RANKING EN TIEMPO REAL -->
     <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd;">
       <h2 class="section-title" style="margin-top: 0;">4. Resultados Evaluados y Publicación</h2>
       <table>
@@ -182,23 +179,23 @@
 
     async function crearGrupo() {
       const nombre = document.getElementById('grupo-nombre').value.trim();
-      const curso = document.getElementById('grupo-curso').value;
+      const idCurso = document.getElementById('grupo-curso').value;
       const idJornada = document.getElementById('grupo-jornada').value;
 
       if (!nombre) return alert('Escribe el nombre del grupo.');
-      if (!curso) return alert('Selecciona el curso o año del grupo.');
+      if (!idCurso) return alert('Selecciona el curso o año del grupo.');
       if (!idJornada) return alert('Selecciona una jornada.');
 
       const { error } = await _supabase.from('grupos').insert([{ 
         nombre: nombre, 
-        curso: curso, 
+        id_curso: parseInt(idCurso), 
         id_jornada: idJornada 
       }]);
 
       if (error) {
         alert('Error al crear grupo: ' + error.message);
       } else {
-        alert(`¡Grupo creado exitosamente para ${curso}!`);
+        alert('¡Grupo creado exitosamente!');
         document.getElementById('grupo-nombre').value = '';
         document.getElementById('grupo-curso').value = '';
         cargarCombosAsignacion();
@@ -207,16 +204,16 @@
     }
 
     async function crearCriterio() {
-      const curso = document.getElementById('criterio-curso').value;
+      const idCurso = document.getElementById('criterio-curso').value;
       const nombre = document.getElementById('criterio-nombre').value.trim();
       const max = parseFloat(document.getElementById('criterio-max').value);
       const orden = parseInt(document.getElementById('criterio-orden').value) || 1;
 
-      if (!curso) return alert('Por favor, selecciona para qué curso es este criterio.');
+      if (!idCurso) return alert('Por favor, selecciona para qué curso es este criterio.');
       if (!nombre || !max) return alert('Completa el nombre y el puntaje máximo del criterio.');
 
       const { error } = await _supabase.from('criterios_rubrica').insert([{ 
-        curso: curso, 
+        id_curso: parseInt(idCurso), 
         nombre: nombre, 
         puntaje_maximo: max, 
         orden: orden 
@@ -225,7 +222,7 @@
       if (error) {
         alert('Error al guardar criterio: ' + error.message);
       } else {
-        alert(`¡Criterio agregado exitosamente para ${curso}!`);
+        alert('¡Criterio agregado exitosamente!');
         document.getElementById('criterio-nombre').value = '';
         document.getElementById('criterio-max').value = '';
         document.getElementById('criterio-orden').value = '';
