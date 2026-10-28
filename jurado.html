@@ -212,19 +212,20 @@
     <!-- PASO 1: SELECCIONAR CURSO / AÑO -->
     <div class="form-group">
         <label for="select-curso">Curso / Año Destino:</label>
-        <select id="select-curso" onchange="filtrarGruposPorCurso()">
+        <select id="select-curso" onchange="seleccionarCurso()">
             <option value="">-- Seleccionar Curso --</option>
         </select>
     </div>
 
-    <!-- PASO 2: SELECCIONAR GRUPO DEL CURSO -->
-    <div class="form-group">
+    <!-- PASO 2: SELECCIONAR GRUPO (Oculto hasta que se elija curso) -->
+    <div class="form-group" id="grupo-container" style="display: none;">
         <label for="select-grupo">Seleccionar Grupo a Evaluar:</label>
-        <select id="select-grupo" onchange="cargarDatosEvaluacion()" disabled>
-            <option value="">-- Primero seleccione un curso --</option>
+        <select id="select-grupo" onchange="cargarDatosEvaluacion()">
+            <option value="">-- Seleccione un grupo --</option>
         </select>
     </div>
 
+    <!-- SECCIÓN DE EVALUACIÓN (Oculta hasta que se elija grupo) -->
     <div id="seccion-evaluacion" style="display: none;">
         <h3 class="section-title" id="titulo-grupo-activo">Evaluando equipo</h3>
 
@@ -276,16 +277,16 @@
 
     async function inicializarJurado() {
         try {
-            // Traemos los grupos con su respectivo curso (asumiendo columna 'curso')
+            // Se incluye el campo 'curso' explícitamente en la consulta
             const { data: grupos, error } = await db.from('grupos').select('id_grupo, nombre, curso');
             if (error) throw error;
 
             listaGlobalGrupos = grupos || [];
 
-            // Extraer cursos únicos para el primer select
             const cursosUnicos = [...new Set(listaGlobalGrupos.map(g => g.curso))].filter(Boolean);
             const selectCurso = document.getElementById('select-curso');
 
+            selectCurso.innerHTML = '<option value="">-- Seleccionar Curso --</option>';
             cursosUnicos.forEach(curso => {
                 const opt = document.createElement('option');
                 opt.value = curso;
@@ -297,21 +298,22 @@
         }
     }
 
-    function filtrarGruposPorCurso() {
+    function seleccionarCurso() {
         const cursoSeleccionado = document.getElementById('select-curso').value;
+        const grupoContainer = document.getElementById('grupo-container');
         const selectGrupo = document.getElementById('select-grupo');
-        const seccion = document.getElementById('seccion-evaluacion');
+        const seccionEvaluacion = document.getElementById('seccion-evaluacion');
 
+        // Ocultar sección de evaluación si se cambia de curso
+        seccionEvaluacion.style.display = 'none';
         selectGrupo.innerHTML = '<option value="">-- Seleccione un grupo --</option>';
-        seccion.style.display = 'none';
 
         if (!cursoSeleccionado) {
-            selectGrupo.disabled = true;
-            selectGrupo.innerHTML = '<option value="">-- Primero seleccione un curso --</option>';
+            grupoContainer.style.display = 'none';
             return;
         }
 
-        selectGrupo.disabled = false;
+        // Filtrar los grupos que pertenecen al curso seleccionado
         const gruposFiltrados = listaGlobalGrupos.filter(g => g.curso === cursoSeleccionado);
 
         gruposFiltrados.forEach(g => {
@@ -320,6 +322,9 @@
             opt.textContent = g.nombre;
             selectGrupo.appendChild(opt);
         });
+
+        // Mostrar el selector de grupos desplegable
+        grupoContainer.style.display = 'block';
     }
 
     async function cargarDatosEvaluacion() {
