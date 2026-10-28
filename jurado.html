@@ -259,13 +259,13 @@
 
     let listaGlobalGrupos = [];
 
-    const usuarioLogueado = JSON.parse(sessionStorage.getItem("usuario"));
+    const usuarioLogueado = JSON.parse(sessionStorage.getItem("usuario") || "{}");
     if (!usuarioLogueado || usuarioLogueado.rol !== "jurado") {
         alert("Acceso denegado. Debe iniciar sesión como Jurado.");
         window.location.href = "index.html";
     }
 
-    document.getElementById('info-jurado').textContent = `Jurado: ${usuarioLogueado.nombre} ${usuarioLogueado.apellido}`;
+    document.getElementById('info-jurado').textContent = `Jurado: ${usuarioLogueado.nombre || ''} ${usuarioLogueado.apellido || ''}`;
 
     function cerrarSesion() {
         sessionStorage.clear();
@@ -278,6 +278,7 @@
 
     async function inicializarJurado() {
         try {
+            // 1. Cargamos los cursos de la tabla 'curso'
             const { data: cursos, error: errCursos } = await db.from('curso').select('*');
             if (errCursos) throw errCursos;
 
@@ -294,6 +295,7 @@
                 });
             }
 
+            // 2. Cargamos los grupos
             const { data: grupos, error: errGrupos } = await db.from('grupos').select('*');
             if (errGrupos) throw errGrupos;
 
@@ -301,6 +303,7 @@
 
         } catch (err) {
             console.error("Error al inicializar datos:", err);
+            alert("Error al cargar los cursos desde la base de datos.");
         }
     }
 
@@ -439,3 +442,76 @@
                 .maybeSingle();
 
             let idEvaluacion;
+
+            if (evalActual) {
+                idEvaluacion = evalActual.id_evaluacion;
+                const { error: errUpd } = await db.from('evaluaciones').update({
+                    estado: estadoDeseado,
+                    comentario_general: comentarioGeneral
+                }).eq('id_evaluacion', idEvaluacion);
+                if (errUpd) throw errUpd;
+            } else {
+                const { data: nuevaEval, error: errEval } = await db.from('evaluaciones').insert([{
+                    id_grupo: idGrupo,
+                    id_jurado: idJurado,
+                    estado: estadoDeseado,
+                    comentario_general: comentarioGeneral
+                }]).select().single();
+
+                if (errEval) throw errEval;
+                idEvaluacion = nuevaEval.id_evaluacion;
+            }
+
+            await db.from('evaluacion_detalle').delete().eq('id_evaluacion', idEvaluacion);
+            const inputsCriterios = document.querySelectorAll('#lista-criterios input');
+            for (let input of inputsCriterios) {
+                const idCriterio = input.id.replace('criterio_', '');
+                const puntaje = parseFloat(input.value) || 0;
+
+                const { error: errDet } = await db.from('evaluacion_detalle').insert([{
+                    id_evaluacion: idEvaluacion,
+                    id_criterio: idCriterio,
+                    puntaje: puntaje
+                }]);
+                if (errDet) throw errDet;
+            }
+
+            const contenedoresAlumnos = document.querySelectorAll('#lista-integrantes-defensa > div');
+            for (let cont of contenedoresAlumnos) {
+                const inputPuntaje = cont.querySelector('input[id^="ind_puntaje_"]');
+                if (!inputPuntaje) continue;
+                const idAlumno = inputPuntaje.id.replace('ind_puntaje_', '');
+
+                const puntajeInd = parseFloat(inputPuntaje.value) || 0;
+                const comentarioInd = document.getElementById(`ind_comentario_${idAlumno}`).value;
+
+                await db.from('defensa_individual').delete()
+                    .eq('id_evaluacion', idEvaluacion)
+                    .eq('id_alumno', idAlumno);
+
+                const { error: errDef } = await db.from('defensa_individual').insert([{
+                    id_evaluacion: idEvaluacion,
+                    id_alumno: idAlumno,
+                    puntaje: puntajeInd,
+                    comentario: comentarioInd
+                }]);
+                if (errDef) throw errDef;
+            }
+
+            if (estadoDeseado === 'terminado') {
+                alert("¡Evaluación guardada y finalizada con éxito! Ya está disponible en los rankings y para el alumno.");
+            } else {
+                alert("Borrador guardado correctamente (en proceso). Puedes modificarlo cuando quieras.");
+            }
+
+        } catch (error) {
+            console.error("Error detallado al guardar:", error);
+            alert("Ocurrió un error al guardar los datos. Revisa la consola (F12) para más detalles.");
+        }
+    }
+
+    window.onload = inicializarJurado;
+</script>
+
+</body>
+</html>
