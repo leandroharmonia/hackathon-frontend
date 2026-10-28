@@ -56,10 +56,11 @@
         const h4Grupo = document.getElementById('nombre-grupo');
 
         try {
+            // CORREGIDO: Se cambia id_usuario por id_alumno para que coincida con la tabla grupo_integrantes
             const { data: relGrupo, error: errRel } = await db
                 .from('grupo_integrantes')
                 .select('id_grupo, grupos(nombre)')
-                .eq('id_usuario', usuarioLogueado.id_usuario)
+                .eq('id_alumno', usuarioLogueado.id_usuario)
                 .maybeSingle();
 
             if (errRel || !relGrupo) {
