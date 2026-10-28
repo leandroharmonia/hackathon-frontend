@@ -239,11 +239,7 @@
             <div id="lista-integrantes-defensa"></div>
         </div>
 
-        <div class="form-group">
-            <label for="comentario-general">Comentarios Generales:</label>
-            <textarea id="comentario-general" rows="3" placeholder="Escribe observaciones para el grupo..."></textarea>
-        </div>
-
+        <!-- BOTONES DE GUARDADO -->
         <div class="btn-container">
             <button type="button" class="btn-borrador" onclick="guardarEvaluacion('en proceso')">💾 Guardar Borrador (En Proceso)</button>
             <button type="button" class="btn-cerrar" onclick="guardarEvaluacion('terminado')">✅ Guardar Definitivo (Terminado)</button>
@@ -277,36 +273,29 @@
 
     async function inicializarJurado() {
         try {
-            // Realizamos el join con la tabla 'curso' a través de id_curso
-            const { data: grupos, error } = await db
-                .from('grupos')
-                .select('id_grupo, nombre, id_curso, curso(id_curso, nombre)');
+            const { data: cursos, error: errCursos } = await db.from('curso').select('*');
+            if (errCursos) throw errCursos;
 
-            if (error) throw error;
-
-            listaGlobalGrupos = grupos || [];
             const selectCurso = document.getElementById('select-curso');
             selectCurso.innerHTML = '<option value="">-- Seleccionar Curso --</option>';
 
-            // Extraemos los cursos únicos de la relación
-            const cursosMap = new Map();
-            listaGlobalGrupos.forEach(g => {
-                if (g.curso) {
-                    const cursoObj = Array.isArray(g.curso) ? g.curso[0] : g.curso;
-                    if (cursoObj && cursoObj.id_curso) {
-                        cursosMap.set(cursoObj.id_curso, cursoObj.nombre);
-                    }
-                }
-            });
+            if (cursos) {
+                cursos.forEach(c => {
+                    const nombreCurso = c.nombre || c.curso || `Curso ${c.id_curso}`;
+                    const opt = document.createElement('option');
+                    opt.value = c.id_curso;
+                    opt.textContent = nombreCurso;
+                    selectCurso.appendChild(opt);
+                });
+            }
 
-            cursosMap.forEach((nombreCurso, idCurso) => {
-                const opt = document.createElement('option');
-                opt.value = idCurso;
-                opt.textContent = nombreCurso;
-                selectCurso.appendChild(opt);
-            });
+            const { data: grupos, error: errGrupos } = await db.from('grupos').select('*');
+            if (errGrupos) throw errGrupos;
+
+            listaGlobalGrupos = grupos || [];
+
         } catch (err) {
-            console.error("Error al cargar cursos y grupos:", err);
+            console.error("Error al inicializar datos:", err);
         }
     }
 
@@ -324,11 +313,7 @@
             return;
         }
 
-        // Filtramos los grupos que pertenecen al id_curso seleccionado
-        const gruposFiltrados = listaGlobalGrupos.filter(g => {
-            const cursoObj = Array.isArray(g.curso) ? g.curso[0] : g.curso;
-            return cursoObj && cursoObj.id_curso == idCursoSeleccionado;
-        });
+        const gruposFiltrados = listaGlobalGrupos.filter(g => g.id_curso == idCursoSeleccionado);
 
         gruposFiltrados.forEach(g => {
             const opt = document.createElement('option');
@@ -400,8 +385,6 @@
             .maybeSingle();
 
         if (evalExistente) {
-            document.getElementById('comentario-general').value = evalExistente.comentario_general || '';
-            
             const { data: detalles } = await db
                 .from('evaluacion_detalle')
                 .select('id_criterio, puntaje')
@@ -437,7 +420,6 @@
 
     async function guardarEvaluacion(estadoDeseado) {
         const idGrupo = document.getElementById('select-grupo').value;
-        const comentario = document.getElementById('comentario-general').value;
         const idJurado = usuarioLogueado.id_usuario;
 
         if (!idGrupo) {
@@ -458,15 +440,13 @@
             if (evalActual) {
                 idEvaluacion = evalActual.id_evaluacion;
                 await db.from('evaluaciones').update({
-                    estado: estadoDeseado,
-                    comentario_general: comentario
+                    estado: estadoDeseado
                 }).eq('id_evaluacion', idEvaluacion);
             } else {
                 const { data: nuevaEval, error: errEval } = await db.from('evaluaciones').insert([{
                     id_grupo: idGrupo,
                     id_jurado: idJurado,
-                    estado: estadoDeseado,
-                    comentario_general: comentario
+                    estado: estadoDeseado
                 }]).select().single();
 
                 if (errEval) throw errEval;
