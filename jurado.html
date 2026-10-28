@@ -136,7 +136,7 @@
 
         .grid-niveles {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: 1fr;
             gap: 12px;
         }
 
@@ -365,10 +365,7 @@
                         <div class="integrante-card">
                             <span class="integrante-nombre">${alumno.nombre} ${alumno.apellido}</span>
                             <div class="grid-niveles">
-                                <input type="number" id="ind_n1_${alumno.id_usuario}" placeholder="Nivel 1 (0-5)">
-                                <input type="number" id="ind_n2_${alumno.id_usuario}" placeholder="Nivel 2 (0-5)">
-                                <input type="number" id="ind_n3_${alumno.id_usuario}" placeholder="Nivel 3 (0-5)">
-                                <input type="number" id="ind_vivo_${alumno.id_usuario}" placeholder="Vivo (0-10)">
+                                <input type="number" id="ind_puntaje_${alumno.id_usuario}" placeholder="Puntaje individual obtenido">
                             </div>
                         </div>
                     `;
@@ -403,15 +400,8 @@
 
             if (defensas) {
                 defensas.forEach(def => {
-                    const inpN1 = document.getElementById(`ind_n1_${def.id_alumno}`);
-                    const inpN2 = document.getElementById(`ind_n2_${def.id_alumno}`);
-                    const inpN3 = document.getElementById(`ind_n3_${def.id_alumno}`);
-                    const inpVivo = document.getElementById(`ind_vivo_${def.id_alumno}`);
-
-                    if (inpN1) inpN1.value = def.nivel_1 || 0;
-                    if (inpN2) inpN2.value = def.nivel_2 || 0;
-                    if (inpN3) inpN3.value = def.nivel_3 || 0;
-                    if (inpVivo) inpVivo.value = def.cambio_vivo || 0;
+                    const inpPuntaje = document.getElementById(`ind_puntaje_${def.id_alumno}`);
+                    if (inpPuntaje) inpPuntaje.value = def.puntaje || 0;
                 });
             }
         }
@@ -469,15 +459,11 @@
 
             const contenedoresAlumnos = document.querySelectorAll('#lista-integrantes-defensa > div');
             for (let cont of contenedoresAlumnos) {
-                const inputN1 = cont.querySelector('input[id^="ind_n1_"]');
-                if (!inputN1) continue;
-                const idAlumno = inputN1.id.replace('ind_n1_', '');
+                const inputPuntaje = cont.querySelector('input[id^="ind_puntaje_"]');
+                if (!inputPuntaje) continue;
+                const idAlumno = inputPuntaje.id.replace('ind_puntaje_', '');
 
-                const n1 = parseFloat(document.getElementById(`ind_n1_${idAlumno}`).value) || 0;
-                const n2 = parseFloat(document.getElementById(`ind_n2_${idAlumno}`).value) || 0;
-                const n3 = parseFloat(document.getElementById(`ind_n3_${idAlumno}`).value) || 0;
-                const vivo = parseFloat(document.getElementById(`ind_vivo_${idAlumno}`).value) || 0;
-                const totalInd = n1 + n2 + n3 + vivo;
+                const puntajeInd = parseFloat(inputPuntaje.value) || 0;
 
                 await db.from('defensa_individual').delete()
                     .eq('id_evaluacion', idEvaluacion)
@@ -486,11 +472,7 @@
                 const { error: errDef } = await db.from('defensa_individual').insert([{
                     id_evaluacion: idEvaluacion,
                     id_alumno: idAlumno,
-                    nivel_1: n1,
-                    nivel_2: n2,
-                    nivel_3: n3,
-                    cambio_vivo: vivo,
-                    puntaje: totalInd
+                    puntaje: puntajeInd
                 }]);
                 if (errDef) throw errDef;
             }
