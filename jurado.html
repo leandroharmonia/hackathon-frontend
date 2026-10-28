@@ -134,9 +134,9 @@
             font-weight: 700;
         }
 
-        .grid-niveles {
+        .grid-defensa {
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr 2fr;
             gap: 12px;
         }
 
@@ -237,6 +237,12 @@
         <div class="form-group">
             <label>Evaluación Individual de Integrantes (Defensa)</label>
             <div id="lista-integrantes-defensa"></div>
+        </div>
+
+        <!-- COMENTARIOS GENERALES -->
+        <div class="form-group">
+            <label for="comentario-general">Comentarios Generales:</label>
+            <textarea id="comentario-general" rows="3" placeholder="Escribe observaciones generales para el grupo..."></textarea>
         </div>
 
         <div class="btn-container">
@@ -364,8 +370,9 @@
                     divIntegrantes.innerHTML += `
                         <div class="integrante-card">
                             <span class="integrante-nombre">${alumno.nombre} ${alumno.apellido}</span>
-                            <div class="grid-niveles">
-                                <input type="number" id="ind_puntaje_${alumno.id_usuario}" placeholder="Puntaje individual obtenido">
+                            <div class="grid-defensa">
+                                <input type="number" id="ind_puntaje_${alumno.id_usuario}" placeholder="Puntaje">
+                                <input type="text" id="ind_comentario_${alumno.id_usuario}" placeholder="Comentario individual (opcional)">
                             </div>
                         </div>
                     `;
@@ -381,6 +388,8 @@
             .maybeSingle();
 
         if (evalExistente) {
+            document.getElementById('comentario-general').value = evalExistente.comentario_general || '';
+
             const { data: detalles } = await db
                 .from('evaluacion_detalle')
                 .select('id_criterio, puntaje')
@@ -401,15 +410,20 @@
             if (defensas) {
                 defensas.forEach(def => {
                     const inpPuntaje = document.getElementById(`ind_puntaje_${def.id_alumno}`);
+                    const inpComentario = document.getElementById(`ind_comentario_${def.id_alumno}`);
                     if (inpPuntaje) inpPuntaje.value = def.puntaje || 0;
+                    if (inpComentario) inpComentario.value = def.comentario || '';
                 });
             }
+        } else {
+            document.getElementById('comentario-general').value = '';
         }
     }
 
     async function guardarEvaluacion(estadoDeseado) {
         const idGrupo = document.getElementById('select-grupo').value;
         const idJurado = usuarioLogueado.id_usuario;
+        const comentarioGeneral = document.getElementById('comentario-general').value;
 
         if (!idGrupo) {
             alert("Seleccione un grupo primero.");
@@ -425,72 +439,3 @@
                 .maybeSingle();
 
             let idEvaluacion;
-
-            if (evalActual) {
-                idEvaluacion = evalActual.id_evaluacion;
-                const { error: errUpd } = await db.from('evaluaciones').update({
-                    estado: estadoDeseado
-                }).eq('id_evaluacion', idEvaluacion);
-                if (errUpd) throw errUpd;
-            } else {
-                const { data: nuevaEval, error: errEval } = await db.from('evaluaciones').insert([{
-                    id_grupo: idGrupo,
-                    id_jurado: idJurado,
-                    estado: estadoDeseado
-                }]).select().single();
-
-                if (errEval) throw errEval;
-                idEvaluacion = nuevaEval.id_evaluacion;
-            }
-
-            await db.from('evaluacion_detalle').delete().eq('id_evaluacion', idEvaluacion);
-            const inputsCriterios = document.querySelectorAll('#lista-criterios input');
-            for (let input of inputsCriterios) {
-                const idCriterio = input.id.replace('criterio_', '');
-                const puntaje = parseFloat(input.value) || 0;
-
-                const { error: errDet } = await db.from('evaluacion_detalle').insert([{
-                    id_evaluacion: idEvaluacion,
-                    id_criterio: idCriterio,
-                    puntaje: puntaje
-                }]);
-                if (errDet) throw errDet;
-            }
-
-            const contenedoresAlumnos = document.querySelectorAll('#lista-integrantes-defensa > div');
-            for (let cont of contenedoresAlumnos) {
-                const inputPuntaje = cont.querySelector('input[id^="ind_puntaje_"]');
-                if (!inputPuntaje) continue;
-                const idAlumno = inputPuntaje.id.replace('ind_puntaje_', '');
-
-                const puntajeInd = parseFloat(inputPuntaje.value) || 0;
-
-                await db.from('defensa_individual').delete()
-                    .eq('id_evaluacion', idEvaluacion)
-                    .eq('id_alumno', idAlumno);
-
-                const { error: errDef } = await db.from('defensa_individual').insert([{
-                    id_evaluacion: idEvaluacion,
-                    id_alumno: idAlumno,
-                    puntaje: puntajeInd
-                }]);
-                if (errDef) throw errDef;
-            }
-
-            if (estadoDeseado === 'terminado') {
-                alert("¡Evaluación guardada y finalizada con éxito! Ya está disponible en los rankings y para el alumno.");
-            } else {
-                alert("Borrador guardado correctamente (en proceso). Puedes modificarlo cuando quieras.");
-            }
-
-        } catch (error) {
-            console.error("Error detallado al guardar:", error);
-            alert("Ocurrió un error al guardar los datos. Revisa la consola (F12) para más detalles.");
-        }
-    }
-
-    window.onload = inicializarJurado;
-</script>
-
-</body>
-</html>
