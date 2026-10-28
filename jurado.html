@@ -217,7 +217,7 @@
         </select>
     </div>
 
-    <!-- PASO 2: SELECCIONAR GRUPO (Oculto hasta que se elija curso) -->
+    <!-- PASO 2: SELECCIONAR GRUPO -->
     <div class="form-group" id="grupo-container" style="display: none;">
         <label for="select-grupo">Seleccionar Grupo a Evaluar:</label>
         <select id="select-grupo" onchange="cargarDatosEvaluacion()">
@@ -225,7 +225,7 @@
         </select>
     </div>
 
-    <!-- SECCIÓN DE EVALUACIÓN (Oculta hasta que se elija grupo) -->
+    <!-- SECCIÓN DE EVALUACIÓN -->
     <div id="seccion-evaluacion" style="display: none;">
         <h3 class="section-title" id="titulo-grupo-activo">Evaluando equipo</h3>
 
@@ -239,7 +239,6 @@
             <div id="lista-integrantes-defensa"></div>
         </div>
 
-        <!-- BOTONES DE GUARDADO -->
         <div class="btn-container">
             <button type="button" class="btn-borrador" onclick="guardarEvaluacion('en proceso')">💾 Guardar Borrador (En Proceso)</button>
             <button type="button" class="btn-cerrar" onclick="guardarEvaluacion('terminado')">✅ Guardar Definitivo (Terminado)</button>
@@ -439,9 +438,10 @@
 
             if (evalActual) {
                 idEvaluacion = evalActual.id_evaluacion;
-                await db.from('evaluaciones').update({
+                const { error: errUpd } = await db.from('evaluaciones').update({
                     estado: estadoDeseado
                 }).eq('id_evaluacion', idEvaluacion);
+                if (errUpd) throw errUpd;
             } else {
                 const { data: nuevaEval, error: errEval } = await db.from('evaluaciones').insert([{
                     id_grupo: idGrupo,
@@ -459,11 +459,12 @@
                 const idCriterio = input.id.replace('criterio_', '');
                 const puntaje = parseFloat(input.value) || 0;
 
-                await db.from('evaluacion_detalle').insert([{
+                const { error: errDet } = await db.from('evaluacion_detalle').insert([{
                     id_evaluacion: idEvaluacion,
                     id_criterio: idCriterio,
                     puntaje: puntaje
                 }]);
+                if (errDet) throw errDet;
             }
 
             const contenedoresAlumnos = document.querySelectorAll('#lista-integrantes-defensa > div');
@@ -482,7 +483,7 @@
                     .eq('id_evaluacion', idEvaluacion)
                     .eq('id_alumno', idAlumno);
 
-                await db.from('defensa_individual').insert([{
+                const { error: errDef } = await db.from('defensa_individual').insert([{
                     id_evaluacion: idEvaluacion,
                     id_alumno: idAlumno,
                     nivel_1: n1,
@@ -491,6 +492,7 @@
                     cambio_vivo: vivo,
                     puntaje: totalInd
                 }]);
+                if (errDef) throw errDef;
             }
 
             if (estadoDeseado === 'terminado') {
@@ -500,8 +502,8 @@
             }
 
         } catch (error) {
-            console.error("Error al guardar la evaluación:", error);
-            alert("Ocurrió un error al guardar los datos.");
+            console.error("Error detallado al guardar:", error);
+            alert("Ocurrió un error al guardar los datos. Revisa la consola (F12) para más detalles.");
         }
     }
 
