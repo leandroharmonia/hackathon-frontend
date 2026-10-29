@@ -203,45 +203,56 @@
         </div>
     </header>
 
-    <!-- PASO 1: SELECCIONAR CURSO / AÑO -->
-    <div class="form-group">
-        <label for="select-curso">Curso / Año Destino:</label>
-        <select id="select-curso" onchange="seleccionarCurso()">
-            <option value="">-- Seleccionar Curso --</option>
+    <!-- SELECCIÓN DE COMPETENCIA (NUEVO) -->
+    <div class="form-group" id="competencia-container" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 25px; border-left: 6px solid #2563eb;">
+        <label for="select-competencia">Seleccionar Competencia a Evaluar:</label>
+        <select id="select-competencia" onchange="cambiarCompetenciaActiva()">
+            <option value="">-- Cargando competencias... --</option>
         </select>
     </div>
 
-    <!-- PASO 2: SELECCIONAR GRUPO -->
-    <div class="form-group" id="grupo-container" style="display: none;">
-        <label for="select-grupo">Seleccionar Grupo a Evaluar:</label>
-        <select id="select-grupo" onchange="cargarDatosEvaluacion()">
-            <option value="">-- Seleccione un grupo --</option>
-        </select>
-    </div>
-
-    <!-- SECCIÓN DE EVALUACIÓN -->
-    <div id="seccion-evaluacion" style="display: none;">
-        <h3 class="section-title" id="titulo-grupo-activo">Evaluando equipo</h3>
-
+    <!-- CONTENEDOR OPERATIVO (OCULTO HASTA SELECCIONAR COMPETENCIA) -->
+    <div id="panel-operativo-jurado" style="display: none;">
+        <!-- PASO 1: SELECCIONAR CURSO / AÑO -->
         <div class="form-group">
-            <label>Criterios de Evaluación Grupal</label>
-            <div id="lista-criterios"></div>
+            <label for="select-curso">Curso / Año Destino:</label>
+            <select id="select-curso" onchange="seleccionarCurso()">
+                <option value="">-- Seleccionar Curso --</option>
+            </select>
         </div>
 
-        <div class="form-group">
-            <label>Evaluación Individual de Integrantes (Defensa)</label>
-            <div id="lista-integrantes-defensa"></div>
+        <!-- PASO 2: SELECCIONAR GRUPO -->
+        <div class="form-group" id="grupo-container" style="display: none;">
+            <label for="select-grupo">Seleccionar Grupo a Evaluar:</label>
+            <select id="select-grupo" onchange="cargarDatosEvaluacion()">
+                <option value="">-- Seleccione un grupo --</option>
+            </select>
         </div>
 
-        <!-- COMENTARIOS GENERALES -->
-        <div class="form-group">
-            <label for="comentario-general">Comentarios Generales:</label>
-            <textarea id="comentario-general" rows="3" placeholder="Escribe observaciones generales para el grupo..."></textarea>
-        </div>
+        <!-- SECCIÓN DE EVALUACIÓN -->
+        <div id="seccion-evaluacion" style="display: none;">
+            <h3 class="section-title" id="titulo-grupo-activo">Evaluando equipo</h3>
 
-        <div class="btn-container">
-            <button type="button" class="btn-borrador" onclick="guardarEvaluacion('borrador')">💾 Guardar Borrador (En Proceso)</button>
-            <button type="button" class="btn-cerrar" onclick="guardarEvaluacion('cerrado')">✅ Guardar Definitivo (Cerrado)</button>
+            <div class="form-group">
+                <label>Criterios de Evaluación Grupal</label>
+                <div id="lista-criterios"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Evaluación Individual de Integrantes (Defensa)</label>
+                <div id="lista-integrantes-defensa"></div>
+            </div>
+
+            <!-- COMENTARIOS GENERALES -->
+            <div class="form-group">
+                <label for="comentario-general">Comentarios Generales:</label>
+                <textarea id="comentario-general" rows="3" placeholder="Escribe observaciones generales para el grupo..."></textarea>
+            </div>
+
+            <div class="btn-container">
+                <button type="button" class="btn-borrador" onclick="guardarEvaluacion('borrador')">💾 Guardar Borrador (En Proceso)</button>
+                <button type="button" class="btn-cerrar" onclick="guardarEvaluacion('cerrado')">✅ Guardar Definitivo (Cerrado)</button>
+            </div>
         </div>
     </div>
 </div>
@@ -252,6 +263,7 @@
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let listaGlobalGrupos = [];
+    let competenciaActivaId = null;
 
     const usuarioLogueado = JSON.parse(sessionStorage.getItem("usuario") || "{}");
     if (!usuarioLogueado || usuarioLogueado.rol !== "jurado") {
@@ -272,6 +284,56 @@
 
     async function inicializarJurado() {
         try {
+            // Cargar competencias disponibles en el sistema
+            const { data: competencias, error: errComp } = await db.from('competencias').select('*').order('id_competencia', { ascending: false });
+            if (errComp) throw errComp;
+
+            const selectComp = document.getElementById('select-competencia');
+            selectComp.innerHTML = '<option value="">-- Seleccione una competencia --</option>';
+
+            if (competencias && competencias.length > 0) {
+                competencias.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id_competencia;
+                    opt.textContent = c.nombre;
+                    selectComp.appendChild(opt);
+                });
+
+                // Si solo hay una competencia, seleccionarla automáticamente
+                if (competencias.length === 1) {
+                    selectComp.value = competencias[0].id_competencia;
+                    // Ocultar el selector superior si es una sola para mayor comodidad
+                    document.getElementById('competencia-container').style.display = 'none';
+                    cambiarCompetenciaActiva();
+                }
+            } else {
+                selectComp.innerHTML = '<option value="">No hay competencias registradas</option>';
+            }
+
+        } catch (err) {
+            console.error("Error al inicializar jurado:", err);
+        }
+    }
+
+    async function cambiarCompetenciaActiva() {
+        const selectComp = document.getElementById('select-competencia');
+        competenciaActivaId = selectComp.value;
+        const panelOperativo = document.getElementById('panel-operativo-jurado');
+
+        // Resetear vistas anteriores
+        document.getElementById('select-curso').innerHTML = '<option value="">-- Seleccionar Curso --</option>';
+        document.getElementById('grupo-container').style.display = 'none';
+        document.getElementById('seccion-evaluacion').style.display = 'none';
+
+        if (!competenciaActivaId) {
+            panelOperativo.style.display = 'none';
+            return;
+        }
+
+        panelOperativo.style.display = 'block';
+
+        try {
+            // Cargar cursos y grupos filtrados por la competencia seleccionada
             const { data: cursos, error: errCursos } = await db.from('curso').select('*');
             if (errCursos) throw errCursos;
 
@@ -288,13 +350,16 @@
                 });
             }
 
-            const { data: grupos, error: errGrupos } = await db.from('grupos').select('*');
-            if (errGrupos) throw errGrupos;
+            const { data: grupos, error: errGrupos } = await db
+                .from('grupos')
+                .select('*')
+                .eq('id_competencia', parseInt(competenciaActivaId));
 
+            if (errGrupos) throw errGrupos;
             listaGlobalGrupos = grupos || [];
 
         } catch (err) {
-            console.error("Error al inicializar datos:", err);
+            console.error("Error al cargar datos de la competencia:", err);
         }
     }
 
@@ -333,10 +398,17 @@
         }
         seccion.style.display = 'block';
 
-        const { data: criterios } = await db.from('criterios_rubrica').select('*');
+        // Cargar criterios vinculados a la competencia activa y curso correspondiente
+        const idCurso = document.getElementById('select-curso').value;
+        const { data: criterios } = await db
+            .from('criterios_rubrica')
+            .select('*')
+            .eq('id_competencia', parseInt(competenciaActivaId))
+            .eq('id_curso', parseInt(idCurso));
+
         const divCriterios = document.getElementById('lista-criterios');
         divCriterios.innerHTML = '';
-        if (criterios) {
+        if (criterios && criterios.length > 0) {
             criterios.forEach(c => {
                 divCriterios.innerHTML += `
                     <div class="criterio-card">
@@ -348,6 +420,8 @@
                     </div>
                 `;
             });
+        } else {
+            divCriterios.innerHTML = '<p style="color: #64748b; font-size: 0.9rem;">No hay criterios definidos para este curso en esta competencia.</p>';
         }
 
         const { data: integrantes } = await db
@@ -357,7 +431,7 @@
 
         const divIntegrantes = document.getElementById('lista-integrantes-defensa');
         divIntegrantes.innerHTML = '';
-        if (integrantes) {
+        if (integrantes && integrantes.length > 0) {
             integrantes.forEach(item => {
                 const alumno = item.usuarios;
                 if (alumno) {
@@ -369,6 +443,8 @@
                     `;
                 }
             });
+        } else {
+            divIntegrantes.innerHTML = '<p style="color: #64748b; font-size: 0.9rem;">No hay alumnos asignados a este grupo.</p>';
         }
 
         const { data: evalExistente } = await db
@@ -419,6 +495,11 @@
             return;
         }
 
+        if (!competenciaActivaId) {
+            alert("Seleccione una competencia activa.");
+            return;
+        }
+
         try {
             const { data: evalActual } = await db
                 .from('evaluaciones')
@@ -433,7 +514,8 @@
                 idEvaluacion = evalActual.id_evaluacion;
                 const { error: errUpd } = await db.from('evaluaciones').update({
                     estado: estadoDeseado,
-                    comentario_general: comentarioGeneral
+                    comentario_general: comentarioGeneral,
+                    id_competencia: parseInt(competenciaActivaId)
                 }).eq('id_evaluacion', idEvaluacion);
                 if (errUpd) throw errUpd;
             } else {
@@ -441,7 +523,8 @@
                     id_grupo: idGrupo,
                     id_jurado: idJurado,
                     estado: estadoDeseado,
-                    comentario_general: comentarioGeneral
+                    comentario_general: comentarioGeneral,
+                    id_competencia: parseInt(competenciaActivaId)
                 }]).select().single();
 
                 if (errEval) throw errEval;
