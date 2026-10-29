@@ -302,17 +302,17 @@
     async function crearJurado() {
       const nombre = document.getElementById('jurado-nombre').value.trim();
       const apellido = document.getElementById('jurado-apellido').value.trim();
-      const correo = document.getElementById('jurado-correo').value.trim();
+      const email = document.getElementById('jurado-correo').value.trim();
       const contrasena = document.getElementById('jurado-pass').value.trim();
 
-      if (!nombre || !apellido || !correo || !contrasena) {
+      if (!nombre || !apellido || !email || !contrasena) {
         return alert('Por favor, complete todos los campos del jurado.');
       }
 
       const { error } = await _supabase.from('usuarios').insert([{
         nombre,
         apellido,
-        correo,
+        email,
         password_hash: contrasena,
         rol: 'jurado'
       }]);
@@ -332,10 +332,10 @@
       const nombre = document.getElementById('alumno-nombre').value.trim();
       const apellido = document.getElementById('alumno-apellido').value.trim();
       const idCurso = document.getElementById('alumno-curso').value;
-      const correo = document.getElementById('alumno-correo').value.trim();
+      const email = document.getElementById('alumno-correo').value.trim();
       const contrasena = document.getElementById('alumno-pass').value.trim();
 
-      if (!nombre || !apellido || !idCurso || !correo || !contrasena) {
+      if (!nombre || !apellido || !idCurso || !email || !contrasena) {
         return alert('Por favor, complete todos los campos del alumno incluyendo su curso.');
       }
 
@@ -343,7 +343,7 @@
         nombre,
         apellido,
         id_curso: parseInt(idCurso),
-        correo,
+        email,
         password_hash: contrasena,
         rol: 'alumno'
       }]);
