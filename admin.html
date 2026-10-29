@@ -16,120 +16,225 @@
     <div class="header-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
       <div>
         <h1 class="titulo-admin" style="text-align: left; margin-bottom: 5px;" id="user-greeting">Panel del Coordinador</h1>
-        <p style="font-size: 0.9rem; color: #475569;">Configuración de Grupos, Rúbrica y Estado de Publicación</p>
+        <p style="font-size: 0.9rem; color: #475569;">Configuración de Competencias, Grupos, Usuarios y Rúbricas</p>
       </div>
       <div>
         <span style="background: #dbeafe; color: #1e3a8a; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; border: 1px solid #93c5fd;">COORDINADOR</span>
       </div>
     </div>
 
-    <!-- 1. CREAR Y GESTIONAR GRUPOS -->
+    <!-- NUEVO APARTADO 0.1: CREAR COMPETENCIA -->
     <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
-      <h2 class="section-title" style="margin-top: 0;">1. Registrar Nuevo Grupo</h2>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+      <h2 class="section-title" style="margin-top: 0;">0.1. Crear Nueva Competencia</h2>
+      <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; align-items: end;">
         <div>
-          <label for="grupo-nombre">Nombre del Equipo / Proyecto:</label>
-          <input type="text" id="grupo-nombre" placeholder="Ej: Grupo 1 - SIGEM">
+          <label for="nueva-competencia-nombre">Nombre de la Competencia:</label>
+          <input type="text" id="nueva-competencia-nombre" placeholder="Ej: Hackathon Regional 2026">
         </div>
-        <div>
-          <label for="grupo-curso">Curso / Año del Grupo:</label>
-          <select id="grupo-curso">
-            <option value="">-- Seleccionar Curso --</option>
-            <option value="1">1er Año</option>
-            <option value="2">2do Año</option>
-            <option value="3">3er Año</option>
-            <option value="4">4to Año</option>
-            <option value="5">5to Año</option>
-            <option value="6">6to Año</option>
-            <option value="7">7mo Año</option>
-          </select>
-        </div>
-        <div>
-          <label for="grupo-jornada">Jornada de Exposición:</label>
-          <select id="grupo-jornada">
-            <option value="">Cargando jornadas...</option>
-          </select>
-        </div>
+        <button class="btn" style="background-color: #2563eb; color: #fff; padding: 12px 20px;" onclick="crearCompetencia()">Crear Competencia</button>
       </div>
-      <button class="btn" style="background-color: #2563eb; color: #fff; width: auto; padding: 10px 20px;" onclick="crearGrupo()">Guardar Equipo</button>
     </div>
 
-    <!-- 2. DEFINIR RÚBRICA DE EVALUACIÓN -->
-    <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
-      <h2 class="section-title" style="margin-top: 0;">2. Definir Criterios de Evaluación (Rúbrica)</h2>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px;">
-        <div>
-          <label for="criterio-curso">Curso / Año Destino:</label>
-          <select id="criterio-curso">
-            <option value="">-- Seleccionar Curso --</option>
-            <option value="1">1er Año</option>
-            <option value="2">2do Año</option>
-            <option value="3">3er Año</option>
-            <option value="4">4to Año</option>
-            <option value="5">5to Año</option>
-            <option value="6">6to Año</option>
-            <option value="7">7mo Año</option>
-          </select>
-        </div>
-        <div style="grid-column: span 2;">
-          <label for="criterio-nombre">Nombre del Criterio:</label>
-          <input type="text" id="criterio-nombre" placeholder="Ej: Exposición Oral y Pitch">
-        </div>
-        <div>
-          <label for="criterio-max">Puntaje Máximo:</label>
-          <input type="number" id="criterio-max" placeholder="15" min="1">
-        </div>
-        <div>
-          <label for="criterio-orden">Orden en Pantalla:</label>
-          <input type="number" id="criterio-orden" placeholder="1" min="1">
-        </div>
+    <!-- NUEVO APARTADO 0.2: SELECCIONAR COMPETENCIA ACTIVA -->
+    <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 25px; border-left: 6px solid #2563eb;">
+      <h2 class="section-title" style="margin-top: 0; color: #1e3a8a;">0.2. Seleccionar Competencia de Trabajo</h2>
+      <div>
+        <label for="select-competencia-activa">Competencia Activa:</label>
+        <select id="select-competencia-activa" onchange="cambiarCompetenciaActiva()">
+          <option value="">-- Seleccione una competencia para comenzar --</option>
+        </select>
       </div>
-      <button class="btn" style="background-color: #2563eb; color: #fff; width: auto; padding: 10px 20px;" onclick="crearCriterio()">Agregar Criterio a la Rúbrica</button>
+      <p id="aviso-competencia" style="font-size: 0.85rem; color: #dc2626; margin-top: 8px; font-weight: 600;">⚠️ Debe seleccionar una competencia activa para habilitar la carga de datos y visualización de resultados.</p>
     </div>
 
-    <!-- 3. ASIGNAR ALUMNOS A GRUPOS -->
-    <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
-      <h2 class="section-title" style="margin-top: 0;">3. Asignar Alumno a un Grupo</h2>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 15px;">
-        <div>
-          <label for="select-asignar-grupo">Seleccionar Grupo:</label>
-          <select id="select-asignar-grupo">
-            <option value="">Cargando grupos...</option>
-          </select>
-        </div>
-        <div>
-          <label for="select-asignar-alumno">Seleccionar Alumno:</label>
-          <select id="select-asignar-alumno">
-            <option value="">Cargando alumnos...</option>
-          </select>
-        </div>
-      </div>
-      <button class="btn" style="background-color: #2563eb; color: #fff; width: auto; padding: 10px 20px;" onclick="asignarAlumnoGrupo()">Vincular Alumno al Grupo</button>
-    </div>
+    <!-- CONTENEDOR DE APARTADOS CONDICIONADOS A LA COMPETENCIA ACTIVA -->
+    <div id="panel-operativo" style="opacity: 0.4; pointer-events: none; transition: all 0.3s ease;">
 
-    <!-- 4. RANKING EN TIEMPO REAL -->
-    <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd;">
-      <h2 class="section-title" style="margin-top: 0;">4. Resultados Evaluados y Publicación</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Equipo</th>
-            <th>Promedio General</th>
-            <th>Evaluado por Jurados</th>
-            <th>Estado Competencia</th>
-          </tr>
-        </thead>
-        <tbody id="tabla-ranking">
-          <tr><td colspan="4" style="text-align: center; color: #64748b;">Cargando promedios...</td></tr>
-        </tbody>
-      </table>
-    </div>
+      <!-- 1. CREAR Y GESTIONAR GRUPOS -->
+      <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
+        <h2 class="section-title" style="margin-top: 0;">1. Registrar Nuevo Grupo</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+          <div>
+            <label for="grupo-nombre">Nombre del Equipo / Proyecto:</label>
+            <input type="text" id="grupo-nombre" placeholder="Ej: Grupo 1 - SIGEM">
+          </div>
+          <div>
+            <label for="grupo-curso">Curso / Año del Grupo:</label>
+            <select id="grupo-curso">
+              <option value="">-- Seleccionar Curso --</option>
+              <option value="1">1er Año</option>
+              <option value="2">2do Año</option>
+              <option value="3">3er Año</option>
+              <option value="4">4to Año</option>
+              <option value="5">5to Año</option>
+              <option value="6">6to Año</option>
+              <option value="7">7mo Año</option>
+            </select>
+          </div>
+          <div>
+            <label for="grupo-jornada">Jornada de Exposición:</label>
+            <select id="grupo-jornada">
+              <option value="">Cargando jornadas...</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn" style="background-color: #2563eb; color: #fff; width: auto; padding: 10px 20px;" onclick="crearGrupo()">Guardar Equipo</button>
+      </div>
+
+      <!-- 2. CREAR JURADO -->
+      <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
+        <h2 class="section-title" style="margin-top: 0;">2. Registrar Nuevo Jurado</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+          <div>
+            <label for="jurado-nombre">Nombre:</label>
+            <input type="text" id="jurado-nombre" placeholder="Ej: Juan">
+          </div>
+          <div>
+            <label for="jurado-apellido">Apellido:</label>
+            <input type="text" id="jurado-apellido" placeholder="Ej: Pérez">
+          </div>
+          <div>
+            <label for="jurado-correo">Correo Electrónico:</label>
+            <input type="text" id="jurado-correo" placeholder="juan.perez@email.com">
+          </div>
+          <div>
+            <label for="jurado-pass">Contraseña:</label>
+            <input type="text" id="jurado-pass" placeholder="••••••••">
+          </div>
+        </div>
+        <button class="btn" style="background-color: #2563eb; color: #fff; width: auto; padding: 10px 20px;" onclick="crearJurado()">Crear Usuario Jurado</button>
+      </div>
+
+      <!-- 3. CREAR ALUMNO -->
+      <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
+        <h2 class="section-title" style="margin-top: 0;">3. Registrar Nuevo Alumno</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px;">
+          <div>
+            <label for="alumno-nombre">Nombre:</label>
+            <input type="text" id="alumno-nombre" placeholder="Ej: María">
+          </div>
+          <div>
+            <label for="alumno-apellido">Apellido:</label>
+            <input type="text" id="alumno-apellido" placeholder="Ej: Gómez">
+          </div>
+          <div>
+            <label for="alumno-curso">Curso / Año:</label>
+            <select id="alumno-curso">
+              <option value="">-- Seleccionar Curso --</option>
+              <option value="1">1er Año</option>
+              <option value="2">2do Año</option>
+              <option value="3">3er Año</option>
+              <option value="4">4to Año</option>
+              <option value="5">5to Año</option>
+              <option value="6">6to Año</option>
+              <option value="7">7mo Año</option>
+            </select>
+          </div>
+          <div>
+            <label for="alumno-correo">Correo:</label>
+            <input type="text" id="alumno-correo" placeholder="maria@email.com">
+          </div>
+          <div>
+            <label for="alumno-pass">Contraseña:</label>
+            <input type="text" id="alumno-pass" placeholder="••••••••">
+          </div>
+        </div>
+        <button class="btn" style="background-color: #2563eb; color: #fff; width: auto; padding: 10px 20px;" onclick="crearAlumno()">Crear Usuario Alumno</button>
+      </div>
+
+      <!-- 4. DEFINIR RÚBRICA DE EVALUACIÓN -->
+      <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
+        <h2 class="section-title" style="margin-top: 0;">4. Definir Criterios de Evaluación (Rúbrica)</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px;">
+          <div>
+            <label for="criterio-curso">Curso / Año Destino:</label>
+            <select id="criterio-curso">
+              <option value="">-- Seleccionar Curso --</option>
+              <option value="1">1er Año</option>
+              <option value="2">2do Año</option>
+              <option value="3">3er Año</option>
+              <option value="4">4to Año</option>
+              <option value="5">5to Año</option>
+              <option value="6">6to Año</option>
+              <option value="7">7mo Año</option>
+            </select>
+          </div>
+          <div style="grid-column: span 2;">
+            <label for="criterio-nombre">Nombre del Criterio:</label>
+            <input type="text" id="criterio-nombre" placeholder="Ej: Exposición Oral y Pitch">
+          </div>
+          <div>
+            <label for="criterio-max">Puntaje Máximo:</label>
+            <input type="number" id="criterio-max" placeholder="15" min="1">
+          </div>
+          <div>
+            <label for="criterio-orden">Orden en Pantalla:</label>
+            <input type="number" id="criterio-orden" placeholder="1" min="1">
+          </div>
+        </div>
+        <button class="btn" style="background-color: #2563eb; color: #fff; width: auto; padding: 10px 20px;" onclick="crearCriterio()">Agregar Criterio a la Rúbrica</button>
+      </div>
+
+      <!-- 5. ASIGNAR ALUMNOS A GRUPOS (CON FILTRO DE CURSO PREVIO) -->
+      <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
+        <h2 class="section-title" style="margin-top: 0;">5. Asignar Alumno a un Grupo</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+          <div>
+            <label for="filtro-curso-asignacion">Filtrar por Curso / Año:</label>
+            <select id="filtro-curso-asignacion" onchange="actualizarCombosAsignacionPorCurso()">
+              <option value="">-- Primero seleccione un curso --</option>
+              <option value="1">1er Año</option>
+              <option value="2">2do Año</option>
+              <option value="3">3er Año</option>
+              <option value="4">4to Año</option>
+              <option value="5">5to Año</option>
+              <option value="6">6to Año</option>
+              <option value="7">7mo Año</option>
+            </select>
+          </div>
+          <div>
+            <label for="select-asignar-grupo">Seleccionar Grupo:</label>
+            <select id="select-asignar-grupo">
+              <option value="">-- Seleccione un curso primero --</option>
+            </select>
+          </div>
+          <div>
+            <label for="select-asignar-alumno">Seleccionar Alumno:</label>
+            <select id="select-asignar-alumno">
+              <option value="">-- Seleccione un curso primero --</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn" style="background-color: #2563eb; color: #fff; width: auto; padding: 10px 20px;" onclick="asignarAlumnoGrupo()">Vincular Alumno al Grupo</button>
+      </div>
+
+      <!-- 6. RANKING EN TIEMPO REAL -->
+      <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd;">
+        <h2 class="section-title" style="margin-top: 0;">6. Resultados Evaluados y Publicación</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Equipo</th>
+              <th>Promedio General</th>
+              <th>Evaluado por Jurados</th>
+              <th>Estado Competencia</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-ranking">
+            <tr><td colspan="4" style="text-align: center; color: #64748b;">Seleccione una competencia para ver los resultados.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div> <!-- FIN PANEL OPERATIVO -->
   </div>
 
   <script>
     const SUPABASE_URL = 'https://lunpcumjmkbetdccsmuo.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1bnBjdW1qbWtiZXRkY2NzbXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODc1MjcsImV4cCI6MjEwNzU2MzUyN30.MyP9ADhCM8LBP7jvtRs-rUX1n-MYShBMA5qtFRMH3Xc';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let competenciaActivaId = null;
 
     const usuarioLogueado = JSON.parse(sessionStorage.getItem("usuario"));
     if (!usuarioLogueado || usuarioLogueado.rol !== "coordinador") {
@@ -142,6 +247,55 @@
     function cerrarSesion() {
       sessionStorage.clear();
       window.location.href = "index.html";
+    }
+
+    // 0. GESTIÓN DE COMPETENCIAS
+    async function cargarCompetencias() {
+      const { data: comps, error } = await _supabase.from('competencias').select('*').order('id_competencia', { ascending: false });
+      const select = document.getElementById('select-competencia-activa');
+      select.innerHTML = '<option value="">-- Seleccione una competencia para comenzar --</option>';
+      if (comps) {
+        comps.forEach(c => {
+          select.innerHTML += `<option value="${c.id_competencia}">${c.nombre}</option>`;
+        });
+      }
+    }
+
+    async function crearCompetencia() {
+      const nombre = document.getElementById('nueva-competencia-nombre').value.trim();
+      if (!nombre) return alert('Ingrese el nombre de la competencia.');
+
+      const { error } = await _supabase.from('competencias').insert([{ nombre }]);
+      if (error) {
+        alert('Error al crear competencia: ' + error.message);
+      } else {
+        alert('¡Competencia creada exitosamente!');
+        document.getElementById('nueva-competencia-nombre').value = '';
+        cargarCompetencias();
+      }
+    }
+
+    function cambiarCompetenciaActiva() {
+      const select = document.getElementById('select-competencia-activa');
+      competenciaActivaId = select.value;
+      const panel = document.getElementById('panel-operativo');
+      const aviso = document.getElementById('aviso-competencia');
+
+      if (competenciaActivaId) {
+        panel.style.opacity = '1';
+        panel.style.pointerEvents = 'auto';
+        aviso.style.display = 'none';
+
+        // Cargar datos dependientes
+        cargarJornadas();
+        cargarRanking();
+        // Limpiar combos de asignación hasta que elijan curso
+        resetearCombosAsignacion();
+      } else {
+        panel.style.opacity = '0.4';
+        panel.style.pointerEvents = 'none';
+        aviso.style.display = 'block';
+      }
     }
 
     async function cargarJornadas() {
@@ -157,26 +311,70 @@
       });
     }
 
-    async function cargarCombosAsignacion() {
-      const { data: grupos } = await _supabase.from('grupos').select('id_grupo, nombre');
-      const selectGrupo = document.getElementById('select-asignar-grupo');
-      selectGrupo.innerHTML = '<option value="">-- Seleccione un grupo --</option>';
-      if (grupos) {
-        grupos.forEach(g => {
-          selectGrupo.innerHTML += `<option value="${g.id_grupo}">${g.nombre}</option>`;
-        });
+    // 2. CREAR JURADO
+    async function crearJurado() {
+      const nombre = document.getElementById('jurado-nombre').value.trim();
+      const apellido = document.getElementById('jurado-apellido').value.trim();
+      const correo = document.getElementById('jurado-correo').value.trim();
+      const contrasena = document.getElementById('jurado-pass').value.trim();
+
+      if (!nombre || !apellido || !correo || !contrasena) {
+        return alert('Por favor, complete todos los campos del jurado.');
       }
 
-      const { data: alumnos } = await _supabase.from('usuarios').select('id_usuario, nombre, apellido').eq('rol', 'alumno');
-      const selectAlumno = document.getElementById('select-asignar-alumno');
-      selectAlumno.innerHTML = '<option value="">-- Seleccione un alumno --</option>';
-      if (alumnos) {
-        alumnos.forEach(a => {
-          selectAlumno.innerHTML += `<option value="${a.id_usuario}">${a.nombre} ${a.apellido}</option>`;
-        });
+      const { error } = await _supabase.from('usuarios').insert([{
+        nombre,
+        apellido,
+        correo,
+        contrasena,
+        rol: 'jurado'
+      }]);
+
+      if (error) {
+        alert('Error al crear jurado: ' + error.message);
+      } else {
+        alert('¡Jurado creado exitosamente!');
+        document.getElementById('jurado-nombre').value = '';
+        document.getElementById('jurado-apellido').value = '';
+        document.getElementById('jurado-correo').value = '';
+        document.getElementById('jurado-pass').value = '';
       }
     }
 
+    // 3. CREAR ALUMNO
+    async function crearAlumno() {
+      const nombre = document.getElementById('alumno-nombre').value.trim();
+      const apellido = document.getElementById('alumno-apellido').value.trim();
+      const idCurso = document.getElementById('alumno-curso').value;
+      const correo = document.getElementById('alumno-correo').value.trim();
+      const contrasena = document.getElementById('alumno-pass').value.trim();
+
+      if (!nombre || !apellido || !idCurso || !correo || !contrasena) {
+        return alert('Por favor, complete todos los campos del alumno incluyendo su curso.');
+      }
+
+      const { error } = await _supabase.from('usuarios').insert([{
+        nombre,
+        apellido,
+        id_curso: parseInt(idCurso),
+        correo,
+        contrasena,
+        rol: 'alumno'
+      }]);
+
+      if (error) {
+        alert('Error al crear alumno: ' + error.message);
+      } else {
+        alert('¡Alumno creado exitosamente!');
+        document.getElementById('alumno-nombre').value = '';
+        document.getElementById('alumno-apellido').value = '';
+        document.getElementById('alumno-curso').value = '';
+        document.getElementById('alumno-correo').value = '';
+        document.getElementById('alumno-pass').value = '';
+      }
+    }
+
+    // 1. CREAR GRUPO (Vinculado a Competencia Activa)
     async function crearGrupo() {
       const nombre = document.getElementById('grupo-nombre').value.trim();
       const idCurso = document.getElementById('grupo-curso').value;
@@ -185,11 +383,13 @@
       if (!nombre) return alert('Escribe el nombre del grupo.');
       if (!idCurso) return alert('Selecciona el curso o año del grupo.');
       if (!idJornada) return alert('Selecciona una jornada.');
+      if (!competenciaActivaId) return alert('Seleccione una competencia activa primero.');
 
       const { error } = await _supabase.from('grupos').insert([{ 
         nombre: nombre, 
         id_curso: parseInt(idCurso), 
-        id_jornada: idJornada 
+        id_jornada: idJornada,
+        id_competencia: parseInt(competenciaActivaId)
       }]);
 
       if (error) {
@@ -198,11 +398,11 @@
         alert('¡Grupo creado exitosamente!');
         document.getElementById('grupo-nombre').value = '';
         document.getElementById('grupo-curso').value = '';
-        cargarCombosAsignacion();
         cargarRanking();
       }
     }
 
+    // 4. CREAR CRITERIO (Vinculado a Competencia Activa)
     async function crearCriterio() {
       const idCurso = document.getElementById('criterio-curso').value;
       const nombre = document.getElementById('criterio-nombre').value.trim();
@@ -211,12 +411,14 @@
 
       if (!idCurso) return alert('Por favor, selecciona para qué curso es este criterio.');
       if (!nombre || !max) return alert('Completa el nombre y el puntaje máximo del criterio.');
+      if (!competenciaActivaId) return alert('Seleccione una competencia activa primero.');
 
       const { error } = await _supabase.from('criterios_rubrica').insert([{ 
         id_curso: parseInt(idCurso), 
         nombre: nombre, 
         puntaje_maximo: max, 
-        orden: orden 
+        orden: orden,
+        id_competencia: parseInt(competenciaActivaId)
       }]);
 
       if (error) {
@@ -230,16 +432,65 @@
       }
     }
 
+    // 5. ASIGNACIÓN FILTRADA POR CURSO
+    function resetearCombosAsignacion() {
+      document.getElementById('filtro-curso-asignacion').value = '';
+      document.getElementById('select-asignar-grupo').innerHTML = '<option value="">-- Seleccione un curso primero --</option>';
+      document.getElementById('select-asignar-alumno').innerHTML = '<option value="">-- Seleccione un curso primero --</option>';
+    }
+
+    async function actualizarCombosAsignacionPorCurso() {
+      const idCurso = document.getElementById('filtro-curso-asignacion').value;
+      const selectGrupo = document.getElementById('select-asignar-grupo');
+      const selectAlumno = document.getElementById('select-asignar-alumno');
+
+      if (!idCurso) {
+        resetearCombosAsignacion();
+        return;
+      }
+
+      // Cargar grupos del curso y competencia activa
+      const { data: grupos } = await _supabase
+        .from('grupos')
+        .select('id_grupo, nombre')
+        .eq('id_curso', parseInt(idCurso))
+        .eq('id_competencia', parseInt(competenciaActivaId));
+
+      selectGrupo.innerHTML = '<option value="">-- Seleccione un grupo --</option>';
+      if (grupos && grupos.length > 0) {
+        grupos.forEach(g => {
+          selectGrupo.innerHTML += `<option value="${g.id_grupo}">${g.nombre}</option>`;
+        });
+      } else {
+        selectGrupo.innerHTML = '<option value="">No hay grupos en este curso</option>';
+      }
+
+      // Cargar alumnos del curso
+      const { data: alumnos } = await _supabase
+        .from('usuarios')
+        .select('id_usuario, nombre, apellido')
+        .eq('rol', 'alumno')
+        .eq('id_curso', parseInt(idCurso));
+
+      selectAlumno.innerHTML = '<option value="">-- Seleccione un alumno --</option>';
+      if (alumnos && alumnos.length > 0) {
+        alumnos.forEach(a => {
+          selectAlumno.innerHTML += `<option value="${a.id_usuario}">${a.nombre} ${a.apellido}</option>`;
+        });
+      } else {
+        selectAlumno.innerHTML = '<option value="">No hay alumnos en este curso</option>';
+      }
+    }
+
     async function asignarAlumnoGrupo() {
       const idGrupo = document.getElementById('select-asignar-grupo').value;
       const idUsuario = document.getElementById('select-asignar-alumno').value;
 
       if (!idGrupo || !idUsuario) {
-        alert('Selecciona un grupo y un alumno.');
+        alert('Selecciona un curso, un grupo y un alumno.');
         return;
       }
 
-      // CORREGIDO: Se usa id_alumno en lugar de id_usuario para que coincida con Supabase
       const { error } = await _supabase
         .from('grupo_integrantes')
         .insert([{ id_grupo: idGrupo, id_alumno: idUsuario }]);
@@ -251,14 +502,24 @@
       }
     }
 
+    // 6. RANKING FILTRADO POR COMPETENCIA ACTIVA
     async function cargarRanking() {
-      const { data: ranking, error } = await _supabase.from('vista_ranking_grupos').select('*');
+      if (!competenciaActivaId) return;
+
+      // Suponiendo que la vista o consulta filtra por id_competencia o se filtra mediante join/filtro en grupos
+      const { data: ranking, error } = await _supabase
+        .from('vista_ranking_grupos')
+        .select('*')
+        .eq('id_competencia', parseInt(competenciaActivaId)); // Asegurar filtro de competencia
+
       const tbody = document.getElementById('tabla-ranking');
       tbody.innerHTML = '';
+      
       if (error || !ranking || ranking.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #64748b;">No hay calificaciones registradas por el jurado aún.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #64748b;">No hay calificaciones registradas para esta competencia aún.</td></tr>';
         return;
       }
+
       ranking.forEach(r => {
         tbody.innerHTML += `
           <tr>
@@ -272,9 +533,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      cargarJornadas();
-      cargarCombosAsignacion();
-      cargarRanking();
+      cargarCompetencias();
     });
   </script>
 </body>
