@@ -52,26 +52,47 @@
 
       const { data, error } = await db
         .from("usuarios")
-        .select("id_usuario, nombre, apellido, rol")
+        .select("id_usuario, nombre, apellido, rol, id_competencia")
         .eq("email", email)
-        .eq("password_hash", pass)
-        .maybeSingle();
+        .eq("password_hash", pass);
 
-      if (error || !data) {
+      if (error || !data || data.length === 0) {
         alert("Usuario o contraseña incorrectos.");
         return;
       }
 
-      sessionStorage.setItem("usuario", JSON.stringify(data));
+      // Si es coordinador o alumno único, o tiene una sola competencia
+      if (data.length === 1 || data[0].rol !== "jurado") {
+        sessionStorage.setItem("usuario", JSON.stringify(data[0]));
+        redireccionar(data[0]);
+      } else {
+        // Si es jurado y tiene múltiples competencias, le permitimos elegir
+        let mensaje = "Se encontraron múltiples competencias para este usuario. Ingrese el número de la competencia a la que desea ingresar:\n";
+        data.forEach((usr, index) => {
+          mensaje += `${index + 1}. ID Competencia: ${usr.id_competencia}\n`;
+        });
 
-      if (data.rol === "coordinador") {
+        const seleccion = prompt(mensaje);
+        const indexElegido = parseInt(seleccion) - 1;
+
+        if (data[indexElegido]) {
+          sessionStorage.setItem("usuario", JSON.stringify(data[indexElegido]));
+          redireccionar(data[indexElegido]);
+        } else {
+          alert("Selección inválida.");
+        }
+      }
+    });
+
+    function redireccionar(usuario) {
+      if (usuario.rol === "coordinador") {
         location.href = "admin.html";
-      } else if (data.rol === "jurado") {
+      } else if (usuario.rol === "jurado") {
         location.href = "jurado.html";
       } else {
         location.href = "alumno.html";
       }
-    });
+    }
   </script>
 </body>
 </html>
