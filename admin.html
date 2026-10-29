@@ -23,7 +23,6 @@
       </div>
     </div>
 
-    <!-- NUEVO APARTADO 0.1: CREAR COMPETENCIA -->
     <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
       <h2 class="section-title" style="margin-top: 0;">0.1. Crear Nueva Competencia</h2>
       <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; align-items: end;">
@@ -35,7 +34,6 @@
       </div>
     </div>
 
-    <!-- NUEVO APARTADO 0.2: SELECCIONAR COMPETENCIA ACTIVA -->
     <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 25px; border-left: 6px solid #2563eb;">
       <h2 class="section-title" style="margin-top: 0; color: #1e3a8a;">0.2. Seleccionar Competencia de Trabajo</h2>
       <div>
@@ -47,10 +45,8 @@
       <p id="aviso-competencia" style="font-size: 0.85rem; color: #dc2626; margin-top: 8px; font-weight: 600;">⚠️ Debe seleccionar una competencia activa para habilitar la carga de datos y visualización de resultados.</p>
     </div>
 
-    <!-- CONTENEDOR DE APARTADOS CONDICIONADOS A LA COMPETENCIA ACTIVA -->
     <div id="panel-operativo" style="opacity: 0.4; pointer-events: none; transition: all 0.3s ease;">
 
-      <!-- 1. CREAR Y GESTIONAR GRUPOS -->
       <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
         <h2 class="section-title" style="margin-top: 0;">1. Registrar Nuevo Grupo</h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
@@ -81,7 +77,6 @@
         <button class="btn" style="background-color: #2563eb; color: #fff; width: auto; padding: 10px 20px;" onclick="crearGrupo()">Guardar Equipo</button>
       </div>
 
-      <!-- 2. CREAR JURADO -->
       <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
         <h2 class="section-title" style="margin-top: 0;">2. Registrar Nuevo Jurado</h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
@@ -105,7 +100,6 @@
         <button class="btn" style="background-color: #2563eb; color: #fff; width: auto; padding: 10px 20px;" onclick="crearJurado()">Crear Usuario Jurado</button>
       </div>
 
-      <!-- 3. CREAR ALUMNO -->
       <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
         <h2 class="section-title" style="margin-top: 0;">3. Registrar Nuevo Alumno</h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px;">
@@ -142,7 +136,6 @@
         <button class="btn" style="background-color: #2563eb; color: #fff; width: auto; padding: 10px 20px;" onclick="crearAlumno()">Crear Usuario Alumno</button>
       </div>
 
-      <!-- 4. DEFINIR RÚBRICA DE EVALUACIÓN -->
       <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
         <h2 class="section-title" style="margin-top: 0;">4. Definir Criterios de Evaluación (Rúbrica)</h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px;">
@@ -175,7 +168,6 @@
         <button class="btn" style="background-color: #2563eb; color: #fff; width: auto; padding: 10px 20px;" onclick="crearCriterio()">Agregar Criterio a la Rúbrica</button>
       </div>
 
-      <!-- 5. ASIGNAR ALUMNOS A GRUPOS (CON FILTRO DE CURSO PREVIO) -->
       <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
         <h2 class="section-title" style="margin-top: 0;">5. Asignar Alumno a un Grupo</h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
@@ -208,7 +200,6 @@
         <button class="btn" style="background-color: #2563eb; color: #fff; width: auto; padding: 10px 20px;" onclick="asignarAlumnoGrupo()">Vincular Alumno al Grupo</button>
       </div>
 
-      <!-- 6. RANKING EN TIEMPO REAL -->
       <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd;">
         <h2 class="section-title" style="margin-top: 0;">6. Resultados Evaluados y Publicación</h2>
         <table>
@@ -226,7 +217,7 @@
         </table>
       </div>
 
-    </div> <!-- FIN PANEL OPERATIVO -->
+    </div>
   </div>
 
   <script>
@@ -249,7 +240,6 @@
       window.location.href = "index.html";
     }
 
-    // 0. GESTIÓN DE COMPETENCIAS
     async function cargarCompetencias() {
       const { data: comps, error } = await _supabase.from('competencias').select('*').order('id_competencia', { ascending: false });
       const select = document.getElementById('select-competencia-activa');
@@ -286,10 +276,8 @@
         panel.style.pointerEvents = 'auto';
         aviso.style.display = 'none';
 
-        // Cargar datos dependientes
         cargarJornadas();
         cargarRanking();
-        // Limpiar combos de asignación hasta que elijan curso
         resetearCombosAsignacion();
       } else {
         panel.style.opacity = '0.4';
@@ -311,7 +299,6 @@
       });
     }
 
-    // 2. CREAR JURADO
     async function crearJurado() {
       const nombre = document.getElementById('jurado-nombre').value.trim();
       const apellido = document.getElementById('jurado-apellido').value.trim();
@@ -326,7 +313,7 @@
         nombre,
         apellido,
         correo,
-        contrasena,
+        password_hash: contrasena,
         rol: 'jurado'
       }]);
 
@@ -341,7 +328,6 @@
       }
     }
 
-    // 3. CREAR ALUMNO
     async function crearAlumno() {
       const nombre = document.getElementById('alumno-nombre').value.trim();
       const apellido = document.getElementById('alumno-apellido').value.trim();
@@ -358,7 +344,7 @@
         apellido,
         id_curso: parseInt(idCurso),
         correo,
-        contrasena,
+        password_hash: contrasena,
         rol: 'alumno'
       }]);
 
@@ -374,7 +360,6 @@
       }
     }
 
-    // 1. CREAR GRUPO (Vinculado a Competencia Activa)
     async function crearGrupo() {
       const nombre = document.getElementById('grupo-nombre').value.trim();
       const idCurso = document.getElementById('grupo-curso').value;
@@ -402,7 +387,6 @@
       }
     }
 
-    // 4. CREAR CRITERIO (Vinculado a Competencia Activa)
     async function crearCriterio() {
       const idCurso = document.getElementById('criterio-curso').value;
       const nombre = document.getElementById('criterio-nombre').value.trim();
@@ -432,7 +416,6 @@
       }
     }
 
-    // 5. ASIGNACIÓN FILTRADA POR CURSO
     function resetearCombosAsignacion() {
       document.getElementById('filtro-curso-asignacion').value = '';
       document.getElementById('select-asignar-grupo').innerHTML = '<option value="">-- Seleccione un curso primero --</option>';
@@ -449,7 +432,6 @@
         return;
       }
 
-      // Cargar grupos del curso y competencia activa
       const { data: grupos } = await _supabase
         .from('grupos')
         .select('id_grupo, nombre')
@@ -465,7 +447,6 @@
         selectGrupo.innerHTML = '<option value="">No hay grupos en este curso</option>';
       }
 
-      // Cargar alumnos del curso
       const { data: alumnos } = await _supabase
         .from('usuarios')
         .select('id_usuario, nombre, apellido')
@@ -502,15 +483,13 @@
       }
     }
 
-    // 6. RANKING FILTRADO POR COMPETENCIA ACTIVA
     async function cargarRanking() {
       if (!competenciaActivaId) return;
 
-      // Suponiendo que la vista o consulta filtra por id_competencia o se filtra mediante join/filtro en grupos
       const { data: ranking, error } = await _supabase
         .from('vista_ranking_grupos')
         .select('*')
-        .eq('id_competencia', parseInt(competenciaActivaId)); // Asegurar filtro de competencia
+        .eq('id_competencia', parseInt(competenciaActivaId));
 
       const tbody = document.getElementById('tabla-ranking');
       tbody.innerHTML = '';
