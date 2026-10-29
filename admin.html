@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+v<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -308,13 +308,17 @@
       if (!nombre || !apellido || !email || !contrasena) {
         return alert('Por favor, complete todos los campos del jurado.');
       }
+      if (!competenciaActivaId) {
+        return alert('Seleccione una competencia activa primero.');
+      }
 
       const { error } = await _supabase.from('usuarios').insert([{
         nombre,
         apellido,
         email,
         password_hash: contrasena,
-        rol: 'jurado'
+        rol: 'jurado',
+        id_competencia: parseInt(competenciaActivaId)
       }]);
 
       if (error) {
@@ -338,6 +342,9 @@
       if (!nombre || !apellido || !idCurso || !email || !contrasena) {
         return alert('Por favor, complete todos los campos del alumno incluyendo su curso.');
       }
+      if (!competenciaActivaId) {
+        return alert('Seleccione una competencia activa primero.');
+      }
 
       const { error } = await _supabase.from('usuarios').insert([{
         nombre,
@@ -345,7 +352,8 @@
         id_curso: parseInt(idCurso),
         email,
         password_hash: contrasena,
-        rol: 'alumno'
+        rol: 'alumno',
+        id_competencia: parseInt(competenciaActivaId)
       }]);
 
       if (error) {
