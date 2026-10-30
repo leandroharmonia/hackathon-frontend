@@ -203,7 +203,7 @@
         </div>
     </header>
 
-    <!-- SELECCIÓN DE COMPETENCIA (NUEVO) -->
+    <!-- SELECCIÓN DE COMPETENCIA -->
     <div class="form-group" id="competencia-container" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 25px; border-left: 6px solid #2563eb;">
         <label for="select-competencia">Seleccionar Competencia a Evaluar:</label>
         <select id="select-competencia" onchange="cambiarCompetenciaActiva()">
@@ -211,9 +211,8 @@
         </select>
     </div>
 
-    <!-- CONTENEDOR OPERATIVO (OCULTO HASTA SELECCIONAR COMPETENCIA) -->
+    <!-- CONTENEDOR OPERATIVO -->
     <div id="panel-operativo-jurado" style="display: none;">
-        <!-- PASO 1: SELECCIONAR CURSO / AÑO -->
         <div class="form-group">
             <label for="select-curso">Curso / Año Destino:</label>
             <select id="select-curso" onchange="seleccionarCurso()">
@@ -221,7 +220,6 @@
             </select>
         </div>
 
-        <!-- PASO 2: SELECCIONAR GRUPO -->
         <div class="form-group" id="grupo-container" style="display: none;">
             <label for="select-grupo">Seleccionar Grupo a Evaluar:</label>
             <select id="select-grupo" onchange="cargarDatosEvaluacion()">
@@ -229,7 +227,6 @@
             </select>
         </div>
 
-        <!-- SECCIÓN DE EVALUACIÓN -->
         <div id="seccion-evaluacion" style="display: none;">
             <h3 class="section-title" id="titulo-grupo-activo">Evaluando equipo</h3>
 
@@ -243,7 +240,6 @@
                 <div id="lista-integrantes-defensa"></div>
             </div>
 
-            <!-- COMENTARIOS GENERALES -->
             <div class="form-group">
                 <label for="comentario-general">Comentarios Generales:</label>
                 <textarea id="comentario-general" rows="3" placeholder="Escribe observaciones generales para el grupo..."></textarea>
@@ -279,12 +275,11 @@
     }
 
     function irARankings() {
-        window.location.href = "rankings.html";
+        window.location.href = "Rankings.html";
     }
 
     async function inicializarJurado() {
         try {
-            // Cargar competencias disponibles en el sistema
             const { data: competencias, error: errComp } = await db.from('competencias').select('*').order('id_competencia', { ascending: false });
             if (errComp) throw errComp;
 
@@ -299,10 +294,8 @@
                     selectComp.appendChild(opt);
                 });
 
-                // Si solo hay una competencia, seleccionarla automáticamente
                 if (competencias.length === 1) {
                     selectComp.value = competencias[0].id_competencia;
-                    // Ocultar el selector superior si es una sola para mayor comodidad
                     document.getElementById('competencia-container').style.display = 'none';
                     cambiarCompetenciaActiva();
                 }
@@ -320,7 +313,6 @@
         competenciaActivaId = selectComp.value;
         const panelOperativo = document.getElementById('panel-operativo-jurado');
 
-        // Resetear vistas anteriores
         document.getElementById('select-curso').innerHTML = '<option value="">-- Seleccionar Curso --</option>';
         document.getElementById('grupo-container').style.display = 'none';
         document.getElementById('seccion-evaluacion').style.display = 'none';
@@ -330,10 +322,13 @@
             return;
         }
 
+        // Actualizamos la competencia activa en el sessionStorage para que Rankings.html la lea correctamente
+        usuarioLogueado.id_competencia = parseInt(competenciaActivaId);
+        sessionStorage.setItem("usuario", JSON.stringify(usuarioLogueado));
+
         panelOperativo.style.display = 'block';
 
         try {
-            // Cargar cursos y grupos filtrados por la competencia seleccionada
             const { data: cursos, error: errCursos } = await db.from('curso').select('*');
             if (errCursos) throw errCursos;
 
@@ -398,7 +393,6 @@
         }
         seccion.style.display = 'block';
 
-        // Cargar criterios vinculados a la competencia activa y curso correspondiente
         const idCurso = document.getElementById('select-curso').value;
         const { data: criterios } = await db
             .from('criterios_rubrica')
@@ -550,7 +544,6 @@
                 const inputPuntaje = cont.querySelector('input[id^="ind_puntaje_"]');
                 if (!inputPuntaje) continue;
                 const idAlumno = inputPuntaje.id.replace('ind_puntaje_', '');
-
                 const puntajeInd = parseFloat(inputPuntaje.value) || 0;
 
                 await db.from('defensa_individual').delete()
