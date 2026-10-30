@@ -198,7 +198,7 @@
             <p id="info-jurado" class="subtitulo-jurado">Cargando datos del jurado...</p>
         </div>
         <div class="header-acciones">
-            <button class="btn-secundario" onclick="irARankings()">Ver Rankings</button>
+            <button id="btn-ver-ranking" class="btn-secundario" style="display: none;" onclick="irARankings()">Ver Rankings</button>
             <button class="btn-peligro" onclick="cerrarSesion()">Cerrar Sesión</button>
         </div>
     </header>
@@ -207,7 +207,7 @@
     <div class="form-group" id="competencia-container" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 25px; border-left: 6px solid #2563eb;">
         <label for="select-competencia">Seleccionar Competencia a Evaluar:</label>
         <select id="select-competencia" onchange="cambiarCompetenciaActiva()">
-            <option value="">-- Cargando competencias... --</option>
+            <option value="">-- Seleccione una competencia --</option>
         </select>
     </div>
 
@@ -275,6 +275,10 @@
     }
 
     function irARankings() {
+        if (competenciaActivaId) {
+            usuarioLogueado.id_competencia = parseInt(competenciaActivaId);
+            sessionStorage.setItem("usuario", JSON.stringify(usuarioLogueado));
+        }
         window.location.href = "Rankings.html";
     }
 
@@ -302,7 +306,6 @@
             } else {
                 selectComp.innerHTML = '<option value="">No hay competencias registradas</option>';
             }
-
         } catch (err) {
             console.error("Error al inicializar jurado:", err);
         }
@@ -312,6 +315,7 @@
         const selectComp = document.getElementById('select-competencia');
         competenciaActivaId = selectComp.value;
         const panelOperativo = document.getElementById('panel-operativo-jurado');
+        const btnRanking = document.getElementById('btn-ver-ranking');
 
         document.getElementById('select-curso').innerHTML = '<option value="">-- Seleccionar Curso --</option>';
         document.getElementById('grupo-container').style.display = 'none';
@@ -319,14 +323,12 @@
 
         if (!competenciaActivaId) {
             panelOperativo.style.display = 'none';
+            btnRanking.style.display = 'none';
             return;
         }
 
-        // Actualizamos la competencia activa en el sessionStorage para que Rankings.html la lea correctamente
-        usuarioLogueado.id_competencia = parseInt(competenciaActivaId);
-        sessionStorage.setItem("usuario", JSON.stringify(usuarioLogueado));
-
         panelOperativo.style.display = 'block';
+        btnRanking.style.display = 'block';
 
         try {
             const { data: cursos, error: errCursos } = await db.from('curso').select('*');
@@ -352,7 +354,6 @@
 
             if (errGrupos) throw errGrupos;
             listaGlobalGrupos = grupos || [];
-
         } catch (err) {
             console.error("Error al cargar datos de la competencia:", err);
         }
@@ -544,6 +545,7 @@
                 const inputPuntaje = cont.querySelector('input[id^="ind_puntaje_"]');
                 if (!inputPuntaje) continue;
                 const idAlumno = inputPuntaje.id.replace('ind_puntaje_', '');
+
                 const puntajeInd = parseFloat(inputPuntaje.value) || 0;
 
                 await db.from('defensa_individual').delete()
@@ -563,7 +565,6 @@
             } else {
                 alert("Borrador guardado correctamente. Puedes modificarlo cuando quieras.");
             }
-
         } catch (error) {
             console.error("Error detallado al guardar:", error);
             alert("Error al guardar: " + (error.message || JSON.stringify(error)));
