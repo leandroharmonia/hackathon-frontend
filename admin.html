@@ -4,12 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel de Administración - Gestión de Hackathon</title>
+  
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
 
-  <button class="btn-logout-top" onclick="cerrarSesion()">Cerrar Sesión</button>
+  <div style="position: absolute; top: 20px; right: 20px; display: flex; gap: 10px;">
+    <!-- Botón condicional de Ver Ranking para Admin -->
+    <button id="btn-ver-ranking" class="btn-secundario" style="display: none; background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold;" onclick="irARankings()">Ver Rankings</button>
+    <button class="btn-logout-top" onclick="cerrarSesion()">Cerrar Sesión</button>
+  </div>
 
   <div class="container">
     <div class="header-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
@@ -17,8 +22,7 @@
         <h1 class="titulo-admin" style="text-align: left; margin-bottom: 5px;" id="user-greeting">Panel del Coordinador</h1>
         <p style="font-size: 0.9rem; color: #475569;">Configuración de Competencias, Grupos, Usuarios y Rúbricas</p>
       </div>
-      <div style="display: flex; gap: 10px; align-items: center;">
-        <button onclick="location.href='Rankings.html'" style="background: #2563eb; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.85rem;">Ver Rankings</button>
+      <div>
         <span style="background: #dbeafe; color: #1e3a8a; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; border: 1px solid #93c5fd;">COORDINADOR</span>
       </div>
     </div>
@@ -240,6 +244,14 @@
       window.location.href = "index.html";
     }
 
+    function irARankings() {
+      if (competenciaActivaId) {
+        usuarioLogueado.id_competencia = parseInt(competenciaActivaId);
+        sessionStorage.setItem("usuario", JSON.stringify(usuarioLogueado));
+      }
+      window.location.href = "rankings.html"; // <-- Minúsculas
+    }
+
     async function cargarCompetencias() {
       const { data: comps, error } = await _supabase.from('competencias').select('*').order('id_competencia', { ascending: false });
       const select = document.getElementById('select-competencia-activa');
@@ -270,15 +282,13 @@
       competenciaActivaId = select.value;
       const panel = document.getElementById('panel-operativo');
       const aviso = document.getElementById('aviso-competencia');
+      const btnRanking = document.getElementById('btn-ver-ranking');
 
       if (competenciaActivaId) {
-        // Actualizamos también el sessionStorage para que Rankings.html sepa la competencia activa del admin
-        usuarioLogueado.id_competencia = parseInt(competenciaActivaId);
-        sessionStorage.setItem("usuario", JSON.stringify(usuarioLogueado));
-
         panel.style.opacity = '1';
         panel.style.pointerEvents = 'auto';
         aviso.style.display = 'none';
+        btnRanking.style.display = 'block';
 
         cargarJornadas();
         cargarRanking();
@@ -287,6 +297,7 @@
         panel.style.opacity = '0.4';
         panel.style.pointerEvents = 'none';
         aviso.style.display = 'block';
+        btnRanking.style.display = 'none';
       }
     }
 
@@ -463,8 +474,7 @@
         .from('usuarios')
         .select('id_usuario, nombre, apellido')
         .eq('rol', 'alumno')
-        .eq('id_curso', parseInt(idCurso))
-        .eq('id_competencia', parseInt(competenciaActivaId));
+        .eq('id_curso', parseInt(idCurso));
 
       selectAlumno.innerHTML = '<option value="">-- Seleccione un alumno --</option>';
       if (alumnos && alumnos.length > 0) {
@@ -499,25 +509,29 @@
     async function cargarRanking() {
       if (!competenciaActivaId) return;
 
-      const { data: grupos } = await _supabase.from('grupos').select('id_grupo, nombre').eq('id_competencia', parseInt(competenciaActivaId));
+      const { data: ranking, error } = await _supabase
+        .from('vista_ranking_grupos')
+        .select('*')
+        .eq('id_competencia', parseInt(competenciaActivaId));
+
       const tbody = document.getElementById('tabla-ranking');
       tbody.innerHTML = '';
       
-      if (!grupos || grupos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #64748b;">No hay equipos registrados en esta competencia.</td></tr>';
+      if (error || !ranking || ranking.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #64748b;">No hay calificaciones registradas para esta competencia aún.</td></tr>';
         return;
       }
 
-      for (let g of grupos) {
+      ranking.forEach(r => {
         tbody.innerHTML += `
           <tr>
-            <td><strong>${g.nombre}</strong></td>
-            <td style="color: #2563eb; font-weight: bold;">Ver en botón superior</td>
-            <td>-</td>
-            <td><span style="color: #16a34a; font-weight: bold;">✓ Activo</span></td>
+            <td><strong>${r.grupo_nombre}</strong></td>
+            <td style="color: #2563eb; font-weight: bold;">${r.promedio_general} pts</td>
+            <td>${r.total_jurados} jurado(s)</td>
+            <td><span style="color: #16a34a; font-weight: bold;">✓ En evaluación</span></td>
           </tr>
         `;
-      }
+      });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
