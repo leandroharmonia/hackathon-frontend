@@ -54,7 +54,7 @@
     }
 
     function irARankings() {
-        window.location.href = "Rankings.html";
+        window.location.href = "rankings.html"; // <-- Minúsculas
     }
 
     async function cargarDatosAlumno() {
@@ -79,7 +79,6 @@
             const idGrupo = relGrupo.id_grupo;
             const nombreGrupo = relGrupo.grupos ? relGrupo.grupos.nombre : 'Equipo';
             
-            // Asegurar que el id_competencia del alumno quede sincronizado en sesión para el ranking
             if (relGrupo.grupos && relGrupo.grupos.id_competencia) {
                 usuarioLogueado.id_competencia = relGrupo.grupos.id_competencia;
                 sessionStorage.setItem("usuario", JSON.stringify(usuarioLogueado));
