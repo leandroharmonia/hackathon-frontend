@@ -27,14 +27,6 @@
         <br><br>
         <button type="submit">Siguiente</button>
       </form>
-
-      <!-- Enlace directo al ranking -->
-      <br>
-      <div style="text-align: center;">
-        <a href="Rankings.html" style="color: #1877f2; text-decoration: none; font-size: 0.9rem; font-weight: 500;">
-          Ver Rankings y Orden de Mérito
-        </a>
-      </div>
     </div>
   </div>
 
@@ -61,18 +53,15 @@
         return;
       }
 
-      // Filtramos solo los registros que tengan una competencia válida (no null)
       const validos = data.filter(usr => usr.id_competencia !== null);
 
       if (validos.length === 0) {
-        // Si por alguna razón todos son null, tomamos el primero
         sessionStorage.setItem("usuario", JSON.stringify(data[0]));
         redireccionar(data[0]);
       } else if (validos.length === 1 || validos[0].rol !== "jurado") {
         sessionStorage.setItem("usuario", JSON.stringify(validos[0]));
         redireccionar(validos[0]);
       } else {
-        // Si es jurado y tiene múltiples competencias válidas, pedimos elegir de forma limpia
         let mensaje = "Seleccione la competencia a ingresar:\n";
         validos.forEach((usr, index) => {
           mensaje += `${index + 1}. Competencia ID: ${usr.id_competencia}\n`;
