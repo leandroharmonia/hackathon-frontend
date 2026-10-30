@@ -1,10 +1,9 @@
-v<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel de Administración - Gestión de Hackathon</title>
-  
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="css/admin.css">
 </head>
@@ -18,7 +17,8 @@ v<!DOCTYPE html>
         <h1 class="titulo-admin" style="text-align: left; margin-bottom: 5px;" id="user-greeting">Panel del Coordinador</h1>
         <p style="font-size: 0.9rem; color: #475569;">Configuración de Competencias, Grupos, Usuarios y Rúbricas</p>
       </div>
-      <div>
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <button onclick="location.href='Rankings.html'" style="background: #2563eb; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.85rem;">Ver Rankings</button>
         <span style="background: #dbeafe; color: #1e3a8a; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; border: 1px solid #93c5fd;">COORDINADOR</span>
       </div>
     </div>
@@ -272,6 +272,10 @@ v<!DOCTYPE html>
       const aviso = document.getElementById('aviso-competencia');
 
       if (competenciaActivaId) {
+        // Actualizamos también el sessionStorage para que Rankings.html sepa la competencia activa del admin
+        usuarioLogueado.id_competencia = parseInt(competenciaActivaId);
+        sessionStorage.setItem("usuario", JSON.stringify(usuarioLogueado));
+
         panel.style.opacity = '1';
         panel.style.pointerEvents = 'auto';
         aviso.style.display = 'none';
@@ -459,7 +463,8 @@ v<!DOCTYPE html>
         .from('usuarios')
         .select('id_usuario, nombre, apellido')
         .eq('rol', 'alumno')
-        .eq('id_curso', parseInt(idCurso));
+        .eq('id_curso', parseInt(idCurso))
+        .eq('id_competencia', parseInt(competenciaActivaId));
 
       selectAlumno.innerHTML = '<option value="">-- Seleccione un alumno --</option>';
       if (alumnos && alumnos.length > 0) {
@@ -494,29 +499,25 @@ v<!DOCTYPE html>
     async function cargarRanking() {
       if (!competenciaActivaId) return;
 
-      const { data: ranking, error } = await _supabase
-        .from('vista_ranking_grupos')
-        .select('*')
-        .eq('id_competencia', parseInt(competenciaActivaId));
-
+      const { data: grupos } = await _supabase.from('grupos').select('id_grupo, nombre').eq('id_competencia', parseInt(competenciaActivaId));
       const tbody = document.getElementById('tabla-ranking');
       tbody.innerHTML = '';
       
-      if (error || !ranking || ranking.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #64748b;">No hay calificaciones registradas para esta competencia aún.</td></tr>';
+      if (!grupos || grupos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #64748b;">No hay equipos registrados en esta competencia.</td></tr>';
         return;
       }
 
-      ranking.forEach(r => {
+      for (let g of grupos) {
         tbody.innerHTML += `
           <tr>
-            <td><strong>${r.grupo_nombre}</strong></td>
-            <td style="color: #2563eb; font-weight: bold;">${r.promedio_general} pts</td>
-            <td>${r.total_jurados} jurado(s)</td>
-            <td><span style="color: #16a34a; font-weight: bold;">✓ En evaluación</span></td>
+            <td><strong>${g.nombre}</strong></td>
+            <td style="color: #2563eb; font-weight: bold;">Ver en botón superior</td>
+            <td>-</td>
+            <td><span style="color: #16a34a; font-weight: bold;">✓ Activo</span></td>
           </tr>
         `;
-      });
+      }
     }
 
     document.addEventListener('DOMContentLoaded', () => {
