@@ -279,7 +279,7 @@
             usuarioLogueado.id_competencia = parseInt(competenciaActivaId);
             sessionStorage.setItem("usuario", JSON.stringify(usuarioLogueado));
         }
-        window.location.href = "Rankings.html";
+        window.location.href = "rankings.html"; // <-- Aquí se corrigió a minúsculas
     }
 
     async function inicializarJurado() {
