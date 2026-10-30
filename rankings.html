@@ -4,16 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Orden de Mérito - Rankings</title>
-    <link rel="stylesheet" href="rankings.css"> <!-- O tus estilos -->
+    <link rel="stylesheet" href="rankings.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
 <div class="contenedor-principal" style="padding: 20px; color: #fff; max-width: 800px; margin: auto;">
     <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2>Orden de Mérito / Rankings</h2>
-        <button onclick="volverJurado()" style="background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">Volver al Panel</button>
+        <div>
+            <h2 id="titulo-ranking" style="margin: 0;">Orden de Mérito / Rankings</h2>
+            <p id="subtitulo-competencia" style="margin: 5px 0 0 0; font-size: 0.9rem; color: #93c5fd;"></p>
+        </div>
+        <button onclick="volverAlPanel()" style="background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">Volver al Panel</button>
     </header>
+
+    <!-- Selector opcional por si ingresa directo sin sesión -->
+    <div id="selector-competencia-container" style="display: none; background: rgba(19, 34, 71, 0.9); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <label for="select-competencia-externa" style="display: block; margin-bottom: 8px; font-weight: bold;">Seleccione la Competencia a Visualizar:</label>
+        <select id="select-competencia-externa" onchange="cambiarCompetenciaExterna()" style="width: 100%; padding: 10px; border-radius: 6px; background: #f1f5f9; color: #0f172a; border: 1px solid #94a3b8;">
+            <option value="">-- Seleccione una competencia --</option>
+        </select>
+    </div>
 
     <div style="background: rgba(19, 34, 71, 0.9); padding: 20px; border-radius: 8px;">
         <table style="width: 100%; border-collapse: collapse; text-align: left;">
@@ -36,26 +47,89 @@
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1bnBjdW1qbWtiZXRkY2NzbXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODc1MjcsImV4cCI6MjEwNzU2MzUyN30.MyP9ADhCM8LBP7jvtRs-rUX1n-MYShBMA5qtFRMH3Xc";
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    function volverJurado() {
-        window.location.href = "jurado.html";
+    let idCompetenciaActiva = null;
+    const usuarioLogueado = JSON.parse(sessionStorage.getItem("usuario") || "null");
+
+    function volverAlPanel() {
+        if (!usuarioLogueado) {
+            window.location.href = "index.html";
+            return;
+        }
+        if (usuarioLogueado.rol === "coordinador") {
+            window.location.href = "admin.html";
+        } else if (usuarioLogueado.rol === "jurado") {
+            window.location.href = "jurado.html";
+        } else {
+            window.location.href = "alumno.html";
+        }
     }
 
-    async function cargarRankings() {
+    async function inicializarRankings() {
+        if (usuarioLogueado && usuarioLogueado.id_competencia) {
+            idCompetenciaActiva = usuarioLogueado.id_competencia;
+            cargarNombreCompetencia(idCompetenciaActiva);
+            cargarRankings(idCompetenciaActiva);
+        } else {
+            document.getElementById('selector-competencia-container').style.display = 'block';
+            await cargarListaCompetenciasExterna();
+        }
+    }
+
+    async function cargarListaCompetenciasExterna() {
+        const { data: comps } = await db.from('competencias').select('*').order('id_competencia', { ascending: false });
+        const select = document.getElementById('select-competencia-externa');
+        select.innerHTML = '<option value="">-- Seleccione una competencia --</option>';
+        if (comps) {
+            comps.forEach(c => {
+                select.innerHTML += `<option value="${c.id_competencia}">${c.nombre}</option>`;
+            });
+        }
+    }
+
+    function cambiarCompetenciaExterna() {
+        const select = document.getElementById('select-competencia-externa');
+        idCompetenciaActiva = select.value;
+        if (idCompetenciaActiva) {
+            cargarNombreCompetencia(idCompetenciaActiva);
+            cargarRankings(idCompetenciaActiva);
+        } else {
+            document.getElementById('tabla-ranking').innerHTML = '<tr><td colspan="3" style="padding: 10px; text-align: center;">Seleccione una competencia para ver el ranking.</td></tr>';
+            document.getElementById('subtitulo-competencia').textContent = '';
+        }
+    }
+
+    async function cargarNombreCompetencia(idComp) {
+        const { data } = await db.from('competencias').select('nombre').eq('id_competencia', idComp).maybeSingle();
+        if (data) {
+            document.getElementById('subtitulo-competencia').textContent = `Competencia: ${data.nombre}`;
+        }
+    }
+
+    async function cargarRankings(idComp) {
         const tbody = document.getElementById('tabla-ranking');
+        tbody.innerHTML = '<tr><td colspan="3" style="padding: 10px; text-align: center;">Calculando rankings...</td></tr>';
+
         try {
-            // 1. Obtener todos los grupos
-            const { data: grupos, error: errGrupos } = await db.from('grupos').select('id_grupo, nombre');
+            const { data: grupos, error: errGrupos } = await db
+                .from('grupos')
+                .select('id_grupo, nombre')
+                .eq('id_competencia', parseInt(idComp));
+
             if (errGrupos) throw errGrupos;
+
+            if (!grupos || grupos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="padding: 10px; text-align: center;">No hay equipos registrados en esta competencia.</td></tr>';
+                return;
+            }
 
             let rankingData = [];
 
             for (let grupo of grupos) {
-                // 2. Buscar SOLAMENTE las evaluaciones con estado 'terminado' para este grupo
                 const { data: evs } = await db
                     .from('evaluaciones')
                     .select('id_evaluacion')
                     .eq('id_grupo', grupo.id_grupo)
-                    .eq('estado', 'terminado');
+                    .in('estado', ['terminado', 'cerrado']);
 
                 let puntajeTotalGrupo = 0;
 
@@ -80,12 +154,11 @@
                 });
             }
 
-            // Ordenar de mayor a menor puntaje
             rankingData.sort((a, b) => b.puntaje - a.puntaje);
 
             tbody.innerHTML = '';
             if (rankingData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" style="padding: 10px; text-align: center;">No hay equipos evaluados de forma definitiva todavía.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3" style="padding: 10px; text-align: center;">No hay equipos evaluados de forma definitiva todavía en esta competencia.</td></tr>';
                 return;
             }
 
@@ -105,7 +178,7 @@
         }
     }
 
-    window.onload = cargarRankings;
+    window.onload = inicializarRankings;
 </script>
 
 </body>
