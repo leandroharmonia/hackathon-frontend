@@ -1,2 +1,2 @@
 # hackathon-frontend
-Hola, viva israel
+Hola,
