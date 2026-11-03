@@ -18,8 +18,9 @@
       <h1>Iniciar sesión</h1>
       <br><br>
       <form method="post" action="" id="login-form">
-        <label for="usuario">Nombre Completo: </label>
-        <input type="text" id="usuario" name="usuario" placeholder="Juan Perez" required>
+        <!-- Input adaptado para pedir Nombre Completo con estilo en mayúsculas -->
+        <label for="usuario">Nombre completo: </label>
+        <input type="text" id="usuario" name="usuario" placeholder="MARIO ALEGRE" style="text-transform: uppercase;" required>
         <br><br>
 
         <label for="contrasena">Contraseña: </label>
@@ -39,13 +40,22 @@
 
     document.getElementById("login-form").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const email = document.getElementById("usuario").value.trim();
-      const pass  = document.getElementById("contrasena").value;
+      
+      // Capturamos el texto completo ingresado
+      const nombreCompleto = document.getElementById("usuario").value.trim();
+      const pass = document.getElementById("contrasena").value;
 
+      // Dividimos el texto ingresado por espacios (ej: "Mario" y "Alegre")
+      const partes = nombreCompleto.split(/\s+/);
+      const primerNombre = partes[0] || "";
+      const apellido = partes.slice(1).join(" ") || "";
+
+      // Consultamos a Supabase usando tus columnas reales: "nombre" y "apellido"
       const { data, error } = await db
         .from("usuarios")
         .select("id_usuario, nombre, apellido, rol, id_competencia")
-        .eq("email", email)
+        .ilike("nombre", primerNombre)
+        .ilike("apellido", apellido)
         .eq("password_hash", pass);
 
       if (error || !data || data.length === 0) {
@@ -53,6 +63,7 @@
         return;
       }
 
+      // Toda la lógica de competencias, roles y redirecciones intacta
       const validos = data.filter(usr => usr.id_competencia !== null);
 
       if (validos.length === 0) {
@@ -79,6 +90,7 @@
       }
     });
 
+    // Función de redirección intacta para admin, jurado y alumno
     function redireccionar(usuario) {
       if (usuario.rol === "coordinador") {
         location.href = "admin.html";
