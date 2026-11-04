@@ -54,6 +54,7 @@
         .header-acciones {
             display: flex;
             gap: 10px;
+            align-items: center;
         }
 
         .form-group {
@@ -161,6 +162,12 @@
             padding: 8px 14px;
             font-size: 0.85rem;
             border-radius: 20px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-notas {
+            background-color: #1e3a8a;
         }
 
         .btn-peligro {
@@ -199,6 +206,7 @@
         </div>
         <div class="header-acciones">
             <button id="btn-ver-ranking" class="btn-secundario" style="display: none;" onclick="irARankings()">Ver Rankings</button>
+            <button id="btn-ver-notas" class="btn-secundario btn-notas" style="display: none;" onclick="irANotas()">🔒 Ver Notas por Curso</button>
             <button class="btn-peligro" onclick="cerrarSesion()">Cerrar Sesión</button>
         </div>
     </header>
@@ -279,7 +287,15 @@
             usuarioLogueado.id_competencia = parseInt(competenciaActivaId);
             sessionStorage.setItem("usuario", JSON.stringify(usuarioLogueado));
         }
-        window.location.href = "rankings.html"; // <-- Aquí se corrigió a minúsculas
+        window.location.href = "rankings.html";
+    }
+
+    function irANotas() {
+        if (competenciaActivaId) {
+            usuarioLogueado.id_competencia = parseInt(competenciaActivaId);
+            sessionStorage.setItem("usuario", JSON.stringify(usuarioLogueado));
+        }
+        window.location.href = "notas.html";
     }
 
     async function inicializarJurado() {
@@ -316,6 +332,7 @@
         competenciaActivaId = selectComp.value;
         const panelOperativo = document.getElementById('panel-operativo-jurado');
         const btnRanking = document.getElementById('btn-ver-ranking');
+        const btnNotas = document.getElementById('btn-ver-notas');
 
         document.getElementById('select-curso').innerHTML = '<option value="">-- Seleccionar Curso --</option>';
         document.getElementById('grupo-container').style.display = 'none';
@@ -324,11 +341,13 @@
         if (!competenciaActivaId) {
             panelOperativo.style.display = 'none';
             btnRanking.style.display = 'none';
+            btnNotas.style.display = 'none';
             return;
         }
 
         panelOperativo.style.display = 'block';
         btnRanking.style.display = 'block';
+        btnNotas.style.display = 'block';
 
         try {
             const { data: cursos, error: errCursos } = await db.from('curso').select('*');
