@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notas Cargadas por Curso - Hackathon 2026</title>
+  <link rel="stylesheet" href="css/estilos.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary-color: #1877f2;
+      --secondary-color: #1e3a8a;
+      --bg-surface: #f8fafc;
+      --text-main: #0f172a;
+      --border-color: #cbd5e1;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f0f2f5;
+      color: var(--text-main);
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container-notas {
+      max-width: 1100px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .header-notas {
+      border-bottom: 2px solid var(--primary-color);
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .header-notas h1 {
+      margin: 0;
+      color: var(--primary-color);
+      font-size: 1.8rem;
+    }
+
+    /* Selector de Cursos (7mo a 1ro) */
+    .selector-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: var(--bg-surface);
+      padding: 14px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border-color);
+    }
+
+    .selector-container label {
+      font-weight: 600;
+      color: var(--secondary-color);
+    }
+
+    .selector-container select {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      font-size: 1rem;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+    }
+
+    .tabla-notas {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    .tabla-notas th, .tabla-notas td {
+      border: 1px solid var(--border-color);
+      padding: 10px 12px;
+    }
+
+    .tabla-notas th {
+      background-color: #f1f5f9;
+      color: var(--secondary-color);
+      font-weight: 600;
+    }
+
+    .tabla-notas th span {
+      display: block;
+      font-size: 0.75rem;
+      color: #64748b;
+      font-weight: normal;
+    }
+
+    .tabla-notas tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    .btn-volver {
+      display: inline-block;
+      margin-bottom: 15px;
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container-notas">
+  <a href="index.html" class="btn-volver">← Volver al inicio</a>
+
+  <div class="header-notas">
+    <h1>Notas Cargadas por Año y Curso</h1>
+    <p>Consulte las calificaciones y puntajes registrados en la base de datos</p>
+  </div>
+
+  <!-- Filtro en orden de 7mo a 1ro -->
+  <div class="selector-container">
+    <label for="select-curso">Seleccionar Año / Curso:</label>
+    <select id="select-curso" onchange="filtrarNotas()">
+      <option value="todos">Todos los Cursos</option>
+      <option value="7">7mo Año</option>
+      <option value="6">6to Año</option>
+      <option value="5">5to Año</option>
+      <option value="4">4to Año</option>
+      <option value="3">3ro Año</option>
+      <option value="2">2do Año</option>
+      <option value="1">1ro Año</option>
+    </select>
+  </div>
+
+  <div class="table-responsive">
+    <table class="tabla-notas">
+      <thead>
+        <tr>
+          <th>Puesto</th>
+          <th style="text-align: left;">Grupo</th>
+          <th>Curso</th>
+          <th>Producto <span>(de 25)</span></th>
+          <th>Stand y Pitch <span>(de 15)</span></th>
+          <th>Base de Datos <span>(de 20)</span></th>
+          <th>Defensa <span>(de 25)</span></th>
+          <th>Carpeta y Reg. <span>(de 15)</span></th>
+          <th>Total <span>(de 100)</span></th>
+        </tr>
+      </thead>
+      <tbody id="tabla-notas-body">
+        <tr>
+          <td colspan="9">Cargando datos desde Supabase...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  // Credenciales activas del proyecto Supabase
+  const SUPABASE_URL = "https://lunpcumjmkbetdccsmuo.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1bnBjdW1qbWtiZXRkY2NzbXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODc1MjcsImV4cCI6MjEwNzU2MzUyN30.MyP9ADhCM8LBP7jvtRs-rUX1n-MYShBMA5qtFRMH3Xc";
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let notasCache = [];
+
+  async function cargarNotas() {
+    const { data, error } = await db
+      .from('vista_ranking_grupos')
+      .select('*');
+
+    if (error) {
+      console.error('Error al cargar calificaciones:', error);
+      document.getElementById('tabla-notas-body').innerHTML = 
+        `<tr><td colspan="9" style="color:red;">Error al consultar las calificaciones</td></tr>`;
+      return;
+    }
+
+    notasCache = data || [];
+    filtrarNotas();
+  }
+
+  function filtrarNotas() {
+    const cursoSeleccionado = document.getElementById('select-curso').value;
+    
+    // Filtrar por el curso elegido
+    let filtrados = notasCache.filter(item => {
+      if (cursoSeleccionado === 'todos') return true;
+      return String(item.curso || item.anio) === String(cursoSeleccionado);
+    });
+
+    // Ordenar de mayor a menor por Total y aplicar desempate
+    filtrados.sort((a, b) => {
+      if (b.total !== a.total) return b.total - a.total;
+      if (b.defensa !== a.defensa) return b.defensa - a.defensa;
+      return b.base_datos - a.base_datos;
+    });
+
+    const tbody = document.getElementById('tabla-notas-body');
+    tbody.innerHTML = '';
+
+    if (filtrados.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="9">No hay notas registradas para este curso.</td></tr>`;
+      return;
+    }
+
+    filtrados.forEach((item, index) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-weight: 700;">${index + 1}°</td>
+        <td style="text-align: left; font-weight: 600;">${item.nombre_grupo || 'Grupo ' + item.grupo_id}</td>
+        <td>${item.curso || item.anio || '-'}° Año</td>
+        <td>${(item.producto || 0).toFixed(1)}</td>
+        <td>${(item.stand_pitch || 0).toFixed(1)}</td>
+        <td>${(item.base_datos || 0).toFixed(1)}</td>
+        <td>${(item.defensa || 0).toFixed(1)}</td>
+        <td>${(item.carpeta_registro || 0).toFixed(1)}</td>
+        <td><strong>${(item.total || 0).toFixed(1)}</strong></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  cargarNotas();
+</script>
+
+</body>
+</html>
