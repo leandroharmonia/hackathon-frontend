@@ -10,7 +10,8 @@
 
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background-color: #ffffff;
+            background: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.7)), url('img/Grupos.jpg') no-repeat center center fixed;
+            background-size: cover;
             color: #1e293b;
             margin: 0;
             padding: 40px 20px;
@@ -20,10 +21,10 @@
         .container {
             max-width: 950px;
             margin: auto;
-            background: #e0f2fe;
+            background: rgba(224, 242, 254, 0.96);
             padding: 35px;
             border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
             border: 1px solid #bae6fd;
         }
 
@@ -211,9 +212,9 @@
         </div>
     </header>
 
-    <!-- SELECCIÓN DE COMPETENCIA -->
+    <!-- SELECCIÓN DE COMPETENCIA / EDICIÓN -->
     <div class="form-group" id="competencia-container" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 25px; border-left: 6px solid #2563eb;">
-        <label for="select-competencia">Seleccionar Competencia a Evaluar:</label>
+        <label for="select-competencia">Seleccionar Competencia / Edición a Evaluar:</label>
         <select id="select-competencia" onchange="cambiarCompetenciaActiva()">
             <option value="">-- Seleccione una competencia --</option>
         </select>
@@ -263,7 +264,7 @@
 
 <script>
     const SUPABASE_URL = "https://lunpcumjmkbetdccsmuo.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1bnBjdW1qbWtiZXRkY2NzbXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODc1MjcsImV4cCI6MjEwNzU2MzUyN30.MyP9ADhCM8LBP7jvtRs-rUX1n-MYShBMA5qtFRMH3Xc";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3OiOiJzdXBhYmFzZSIsInJlZiI6Imx1bnBjdW1qbWtiZXRkY2NzbXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODc1MjcsImV4cCI6MjEwNzU2MzUyN30.MyP9ADhCM8LBP7jvtRs-rUX1n-MYShBMA5qtFRMH3Xc";
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let listaGlobalGrupos = [];
@@ -313,12 +314,6 @@
                     opt.textContent = c.nombre;
                     selectComp.appendChild(opt);
                 });
-
-                if (competencias.length === 1) {
-                    selectComp.value = competencias[0].id_competencia;
-                    document.getElementById('competencia-container').style.display = 'none';
-                    cambiarCompetenciaActiva();
-                }
             } else {
                 selectComp.innerHTML = '<option value="">No hay competencias registradas</option>';
             }
