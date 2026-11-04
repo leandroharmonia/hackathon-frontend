@@ -206,7 +206,6 @@
             <p id="info-jurado" class="subtitulo-jurado">Cargando datos del jurado...</p>
         </div>
         <div class="header-acciones">
-            <!-- Botones visibles permanentemente en el header -->
             <button id="btn-ver-ranking" class="btn-secundario" onclick="irARankings()">Ver Rankings</button>
             <button id="btn-ver-notas" class="btn-secundario btn-notas" onclick="irANotas()">🔒 Ver Notas por Curso</button>
             <button class="btn-peligro" onclick="cerrarSesion()">Cerrar Sesión</button>
@@ -227,6 +226,13 @@
             <label for="select-curso">Curso / Año Destino:</label>
             <select id="select-curso" onchange="seleccionarCurso()">
                 <option value="">-- Seleccionar Curso --</option>
+                <option value="7">7mo Año</option>
+                <option value="6">6to Año</option>
+                <option value="5">5to Año</option>
+                <option value="4">4to Año</option>
+                <option value="3">3ro Año</option>
+                <option value="2">2do Año</option>
+                <option value="1">1ro Año</option>
             </select>
         </div>
 
@@ -265,7 +271,7 @@
 
 <script>
     const SUPABASE_URL = "https://lunpcumjmkbetdccsmuo.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3OiOiJzdXBhYmFzZSIsInJlZiI6Imx1bnBjdW1qbWtiZXRkY2NzbXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODc1MjcsImV4cCI6MjEwNzU2MzUyN30.MyP9ADhCM8LBP7jvtRs-rUX1n-MYShBMA5qtFRMH3Xc";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1bnBjdW1qbWtiZXRkY2NzbXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODc1MjcsImV4cCI6MjEwNzU2MzUyN30.MyP9ADhCM8LBP7jvtRs-rUX1n-MYShBMA5qtFRMH3Xc";
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let listaGlobalGrupos = [];
@@ -302,8 +308,16 @@
 
     async function inicializarJurado() {
         try {
-            const { data: competencias, error: errComp } = await db.from('competencias').select('*').order('id_competencia', { ascending: false });
-            if (errComp) throw errComp;
+            // Consulta directa a la tabla competencias (id_competencia, nombre)
+            const { data: competencias, error: errComp } = await db
+                .from('competencias')
+                .select('id_competencia, nombre')
+                .order('id_competencia', { ascending: false });
+
+            if (errComp) {
+                console.error("Error al consultar competencias:", errComp);
+                throw errComp;
+            }
 
             const selectComp = document.getElementById('select-competencia');
             selectComp.innerHTML = '<option value="">-- Seleccione una competencia --</option>';
@@ -316,11 +330,10 @@
                     selectComp.appendChild(opt);
                 });
 
-                // Si el jurado ya tenía una competencia guardada en la sesión, la selecciona automáticamente
+                // Si el jurado tenía una competencia asignada en su usuario o en sesión
                 if (usuarioLogueado.id_competencia) {
                     selectComp.value = usuarioLogueado.id_competencia;
-                } else if (competencias.length >= 1) {
-                    // Seleccionar la primera por defecto si no hay selección previa
+                } else {
                     selectComp.value = competencias[0].id_competencia;
                 }
                 
@@ -329,7 +342,8 @@
                 selectComp.innerHTML = '<option value="">No hay competencias registradas</option>';
             }
         } catch (err) {
-            console.error("Error al inicializar jurado:", err);
+            console.error("Error crítico al inicializar jurado:", err);
+            alert("No se pudieron cargar las competencias de Supabase: " + (err.message || JSON.stringify(err)));
         }
     }
 
@@ -338,7 +352,7 @@
         competenciaActivaId = selectComp.value;
         const panelOperativo = document.getElementById('panel-operativo-jurado');
 
-        document.getElementById('select-curso').innerHTML = '<option value="">-- Seleccionar Curso --</option>';
+        document.getElementById('select-curso').value = "";
         document.getElementById('grupo-container').style.display = 'none';
         document.getElementById('seccion-evaluacion').style.display = 'none';
 
@@ -350,22 +364,7 @@
         panelOperativo.style.display = 'block';
 
         try {
-            const { data: cursos, error: errCursos } = await db.from('curso').select('*');
-            if (errCursos) throw errCursos;
-
-            const selectCurso = document.getElementById('select-curso');
-            selectCurso.innerHTML = '<option value="">-- Seleccionar Curso --</option>';
-
-            if (cursos) {
-                cursos.forEach(c => {
-                    const nombreCurso = c.nombre || c.curso || `Curso ${c.id_curso}`;
-                    const opt = document.createElement('option');
-                    opt.value = c.id_curso;
-                    opt.textContent = nombreCurso;
-                    selectCurso.appendChild(opt);
-                });
-            }
-
+            // Traer todos los grupos pertenecientes a la competencia activa
             const { data: grupos, error: errGrupos } = await db
                 .from('grupos')
                 .select('*')
@@ -374,7 +373,7 @@
             if (errGrupos) throw errGrupos;
             listaGlobalGrupos = grupos || [];
         } catch (err) {
-            console.error("Error al cargar datos de la competencia:", err);
+            console.error("Error al cargar grupos de la competencia:", err);
         }
     }
 
@@ -394,12 +393,16 @@
 
         const gruposFiltrados = listaGlobalGrupos.filter(g => g.id_curso == idCursoSeleccionado);
 
-        gruposFiltrados.forEach(g => {
-            const opt = document.createElement('option');
-            opt.value = g.id_grupo;
-            opt.textContent = g.nombre;
-            selectGrupo.appendChild(opt);
-        });
+        if (gruposFiltrados.length > 0) {
+            gruposFiltrados.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g.id_grupo;
+                opt.textContent = g.nombre;
+                selectGrupo.appendChild(opt);
+            });
+        } else {
+            selectGrupo.innerHTML = '<option value="">No hay grupos en este curso</option>';
+        }
 
         grupoContainer.style.display = 'block';
     }
@@ -580,17 +583,17 @@
             }
 
             if (estadoDeseado === 'cerrado') {
-                alert("¡Evaluación guardada y finalizada con éxito! Ya está disponible en los rankings y para el alumno.");
+                alert("¡Evaluación guardada y finalizada con éxito!");
             } else {
-                alert("Borrador guardado correctamente. Puedes modificarlo cuando quieras.");
+                alert("Borrador guardado correctamente.");
             }
         } catch (error) {
-            console.error("Error detallado al guardar:", error);
+            console.error("Error al guardar:", error);
             alert("Error al guardar: " + (error.message || JSON.stringify(error)));
         }
     }
 
-    window.onload = inicializarJurado;
+    document.addEventListener('DOMContentLoaded', inicializarJurado);
 </script>
 
 </body>
