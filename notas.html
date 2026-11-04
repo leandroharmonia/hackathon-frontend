@@ -10,92 +10,110 @@
     :root {
       --primary-color: #1877f2;
       --secondary-color: #1e3a8a;
-      --bg-surface: #f8fafc;
+      --bg-surface: rgba(255, 255, 255, 0.95);
       --text-main: #0f172a;
-      --border-color: #cbd5e1;
+      --border-color: #bae6fd;
     }
 
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background-color: #f0f2f5;
+      /* Fondo dinámico utilizando la imagen img/Grupos.jpg */
+      background: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.65)), url('img/Grupos.jpg') no-repeat center center fixed;
+      background-size: cover;
       color: var(--text-main);
       margin: 0;
-      padding: 20px;
+      padding: 30px 20px;
+      min-height: 100vh;
     }
 
     .container-notas {
       max-width: 1100px;
       margin: 0 auto;
-      background-color: #ffffff;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    }
-
-    .header-notas {
-      border-bottom: 2px solid var(--primary-color);
-      padding-bottom: 12px;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-
-    .header-notas h1 {
-      margin: 0;
-      color: var(--primary-color);
-      font-size: 1.8rem;
+      background-color: var(--bg-surface);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--border-color);
     }
 
     .toolbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 15px;
+      margin-bottom: 20px;
     }
 
     .btn-volver {
       color: var(--primary-color);
       text-decoration: none;
-      font-weight: 600;
+      font-weight: 700;
+      font-size: 0.95rem;
     }
 
+    /* Botón Imprimir adaptado a la paleta azul */
     .btn-print {
-      background-color: #16a34a;
+      background-color: var(--primary-color);
       color: #ffffff;
       border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-weight: 700;
       cursor: pointer;
       font-size: 0.9rem;
+      box-shadow: 0 2px 8px rgba(24, 119, 242, 0.3);
+      transition: all 0.2s ease;
     }
 
     .btn-print:hover {
-      background-color: #15803d;
+      background-color: var(--secondary-color);
+      transform: translateY(-1px);
+    }
+
+    .header-notas {
+      border-bottom: 2px solid var(--primary-color);
+      padding-bottom: 12px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .header-notas h1 {
+      margin: 0;
+      color: var(--secondary-color);
+      font-size: 2rem;
+      font-weight: 800;
+    }
+
+    .header-notas p {
+      margin: 6px 0 0 0;
+      color: #475569;
     }
 
     .selector-container {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background-color: var(--bg-surface);
-      padding: 14px 20px;
-      border-radius: 8px;
-      margin-bottom: 20px;
+      background-color: #e0f2fe;
+      padding: 16px 22px;
+      border-radius: 12px;
+      margin-bottom: 22px;
       border: 1px solid var(--border-color);
     }
 
     .selector-container label {
-      font-weight: 600;
+      font-weight: 700;
       color: var(--secondary-color);
+      font-size: 1rem;
     }
 
     .selector-container select {
       padding: 8px 16px;
-      border-radius: 6px;
-      border: 1px solid var(--border-color);
-      font-size: 1rem;
+      border-radius: 8px;
+      border: 1px solid #94a3b8;
+      font-size: 0.95rem;
+      background-color: #ffffff;
       outline: none;
       cursor: pointer;
+      color: var(--text-main);
     }
 
     .table-responsive {
@@ -107,17 +125,20 @@
       border-collapse: collapse;
       font-size: 0.9rem;
       text-align: center;
+      background-color: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
     }
 
     .tabla-notas th, .tabla-notas td {
-      border: 1px solid var(--border-color);
-      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      padding: 12px 14px;
     }
 
     .tabla-notas th {
       background-color: #f1f5f9;
       color: var(--secondary-color);
-      font-weight: 600;
+      font-weight: 700;
     }
 
     .tabla-notas th span {
@@ -131,11 +152,12 @@
       background-color: #f8fafc;
     }
 
-    /* ESTILOS PARA IMPRESIÓN Y PDF */
+    /* REGLAS PARA IMPRESIÓN Y EXPORTACIÓN A PDF */
     @media print {
       body {
-        background-color: #ffffff;
+        background: #ffffff !important;
         padding: 0;
+        color: #000000;
       }
 
       .container-notas {
@@ -143,17 +165,29 @@
         border: none;
         padding: 0;
         max-width: 100%;
+        background-color: #ffffff;
       }
 
-      .btn-volver, .btn-print, .selector-container {
+      .toolbar, .selector-container {
         display: none !important;
       }
 
+      .header-notas {
+        border-bottom: 2px solid #000;
+      }
+
       .header-notas h1 {
-        font-size: 1.5rem;
+        color: #000;
+        font-size: 1.6rem;
+      }
+
+      .tabla-notas th {
+        background-color: #e2e8f0 !important;
+        color: #000 !important;
       }
 
       .tabla-notas th, .tabla-notas td {
+        border: 1px solid #64748b !important;
         padding: 6px 8px;
         font-size: 0.85rem;
       }
@@ -212,6 +246,7 @@
 </div>
 
 <script>
+  // Verificación de autenticación de jurado
   const usuarioLogueado = JSON.parse(sessionStorage.getItem("usuario") || "{}");
   if (!usuarioLogueado || usuarioLogueado.rol !== "jurado") {
     alert("Acceso denegado: solo el personal de jurados puede acceder a esta sección.");
@@ -225,23 +260,47 @@
   let notasCache = [];
 
   async function cargarNotas() {
-    let query = db.from('vista_ranking_grupos').select('*');
+    try {
+      // 1. Intentar consulta primaria sobre la vista de rankings
+      let { data, error } = await db.from('vista_ranking_grupos').select('*');
 
-    if (usuarioLogueado.id_competencia) {
-      query = query.eq('id_competencia', usuarioLogueado.id_competencia);
-    }
+      // 2. Si la vista no devuelve datos o falla, consultar la relación de evaluaciones directa
+      if (error || !data || data.length === 0) {
+        const { data: evalData, error: evalErr } = await db
+          .from('evaluaciones')
+          .select(`
+            id_evaluacion,
+            id_grupo,
+            grupos ( id_grupo, nombre, id_curso ),
+            evaluacion_detalle ( id_criterio, puntaje )
+          `);
+        
+        if (!evalErr && evalData) {
+          data = evalData.map(e => {
+            const detalles = e.evaluacion_detalle || [];
+            const total = detalles.reduce((acc, curr) => acc + (parseFloat(curr.puntaje) || 0), 0);
+            return {
+              id_grupo: e.id_grupo,
+              nombre_grupo: e.grupos ? e.grupos.nombre : `Grupo ${e.id_grupo}`,
+              curso: e.grupos ? e.grupos.id_curso : '-',
+              producto: detalles[0] ? detalles[0].puntaje : 0,
+              stand_pitch: detalles[1] ? detalles[1].puntaje : 0,
+              base_datos: detalles[2] ? detalles[2].puntaje : 0,
+              defensa: detalles[3] ? detalles[3].puntaje : 0,
+              carpeta_registro: detalles[4] ? detalles[4].puntaje : 0,
+              total: total
+            };
+          });
+        }
+      }
 
-    const { data, error } = await query;
-
-    if (error) {
-      console.error('Error al cargar calificaciones:', error);
+      notasCache = data || [];
+      filtrarNotas();
+    } catch (err) {
+      console.error('Error al cargar datos:', err);
       document.getElementById('tabla-notas-body').innerHTML = 
-        `<tr><td colspan="9" style="color:red;">Error al consultar las calificaciones</td></tr>`;
-      return;
+        `<tr><td colspan="9" style="color:red;">Error al consultar las calificaciones en la base de datos</td></tr>`;
     }
-
-    notasCache = data || [];
-    filtrarNotas();
   }
 
   function filtrarNotas() {
