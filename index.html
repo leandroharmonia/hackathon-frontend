@@ -18,9 +18,8 @@
       <h1>Iniciar sesión</h1>
       <br><br>
       <form method="post" action="" id="login-form">
-        <!-- Input adaptado para pedir Nombre Completo con estilo en mayúsculas -->
-        <label for="usuario">Nombre completo: </label>
-        <input type="text" id="usuario" name="usuario" placeholder="MARIO ALEGRE" style="text-transform: uppercase;" required>
+        <label for="usuario">Usuario / Email: </label>
+        <input type="text" id="usuario" name="usuario" placeholder="ejemplo@escuela.edu.ar" required>
         <br><br>
 
         <label for="contrasena">Contraseña: </label>
@@ -28,6 +27,14 @@
         <br><br>
         <button type="submit">Siguiente</button>
       </form>
+
+      <!-- Enlace directo a la vista de Rankings -->
+      <br>
+      <div style="text-align: center;">
+        <a href="Rankings.html" style="color: #1877f2; text-decoration: none; font-size: 0.9rem; font-weight: 500;">
+          Ver Rankings y Orden de Mérito
+        </a>
+      </div>
     </div>
   </div>
 
@@ -41,16 +48,16 @@
     document.getElementById("login-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       
-      // Capturamos el texto completo ingresado
+      // Capturamos el texto completo ingresado (Nombre completo o Email)
       const nombreCompleto = document.getElementById("usuario").value.trim();
       const pass = document.getElementById("contrasena").value;
 
-      // Dividimos el texto ingresado por espacios (ej: "Mario" y "Alegre")
+      // Dividimos el texto ingresado por espacios (por si ingresan nombre y apellido)
       const partes = nombreCompleto.split(/\s+/);
       const primerNombre = partes[0] || "";
       const apellido = partes.slice(1).join(" ") || "";
 
-      // Consultamos a Supabase usando tus columnas reales: "nombre" y "apellido"
+      // Consultamos a Supabase usando "nombre" y "apellido"
       const { data, error } = await db
         .from("usuarios")
         .select("id_usuario, nombre, apellido, rol, id_competencia")
