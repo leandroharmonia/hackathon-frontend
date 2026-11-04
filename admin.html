@@ -7,6 +7,24 @@
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="css/admin.css">
+  <style>
+    body {
+      background: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.75)), url('img/Grupos.jpg') no-repeat center center fixed;
+      background-size: cover;
+      margin: 0;
+      padding: 30px 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1050px;
+      margin: 0 auto;
+      background-color: rgba(255, 255, 255, 0.96);
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+  </style>
 </head>
 <body>
 
@@ -18,15 +36,15 @@
     <div class="header-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
       <div>
         <h1 class="titulo-admin" style="text-align: left; margin-bottom: 5px;" id="user-greeting">Panel del Coordinador</h1>
-        <p style="font-size: 0.9rem; color: #475569;">Configuración de Competencias, Grupos, Usuarios y Rúbricas</p>
+        <p style="font-size: 0.9rem; color: #475569;">Configuración de Competencias, Jornadas, Grupos, Usuarios y Rúbricas</p>
       </div>
       <div style="display: flex; align-items: center; gap: 10px;">
-        <!-- Botón condicional de Ver Ranking al lado de COORDINADOR -->
         <button id="btn-ver-ranking" class="btn-secundario" style="display: none; background: #2563eb; color: white; border: none; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.8rem;" onclick="irARankings()">Ver Rankings</button>
         <span style="background: #dbeafe; color: #1e3a8a; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; border: 1px solid #93c5fd;">COORDINADOR</span>
       </div>
     </div>
 
+    <!-- 0.1. CREAR NUEVA COMPETENCIA -->
     <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
       <h2 class="section-title" style="margin-top: 0;">0.1. Crear Nueva Competencia</h2>
       <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; align-items: end;">
@@ -38,6 +56,7 @@
       </div>
     </div>
 
+    <!-- 0.2. SELECCIONAR COMPETENCIA DE TRABAJO -->
     <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 25px; border-left: 6px solid #2563eb;">
       <h2 class="section-title" style="margin-top: 0; color: #1e3a8a;">0.2. Seleccionar Competencia de Trabajo</h2>
       <div>
@@ -51,6 +70,27 @@
 
     <div id="panel-operativo" style="opacity: 0.4; pointer-events: none; transition: all 0.3s ease;">
 
+      <!-- 0.3. CREAR NUEVA JORNADA -->
+      <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
+        <h2 class="section-title" style="margin-top: 0;">0.3. Crear Nueva Jornada de Exposición</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: end;">
+          <div>
+            <label for="nueva-jornada-fecha">Fecha de la Jornada:</label>
+            <input type="date" id="nueva-jornada-fecha">
+          </div>
+          <div>
+            <label for="nueva-jornada-turno">Turno:</label>
+            <select id="nueva-jornada-turno">
+              <option value="Mañana">Mañana</option>
+              <option value="Tarde" selected>Tarde</option>
+              <option value="Noche">Noche</option>
+            </select>
+          </div>
+          <button class="btn" style="background-color: #2563eb; color: #fff; padding: 12px 20px;" onclick="crearJornada()">Guardar Jornada</button>
+        </div>
+      </div>
+
+      <!-- 1. REGISTRAR NUEVO GRUPO -->
       <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
         <h2 class="section-title" style="margin-top: 0;">1. Registrar Nuevo Grupo</h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
@@ -81,6 +121,7 @@
         <button class="btn" style="background-color: #2563eb; color: #fff; width: auto; padding: 10px 20px;" onclick="crearGrupo()">Guardar Equipo</button>
       </div>
 
+      <!-- 2. REGISTRAR NUEVO JURADO -->
       <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
         <h2 class="section-title" style="margin-top: 0;">2. Registrar Nuevo Jurado</h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
@@ -104,6 +145,7 @@
         <button class="btn" style="background-color: #2563eb; color: #fff; width: auto; padding: 10px 20px;" onclick="crearJurado()">Crear Usuario Jurado</button>
       </div>
 
+      <!-- 3. REGISTRAR NUEVO ALUMNO -->
       <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
         <h2 class="section-title" style="margin-top: 0;">3. Registrar Nuevo Alumno</h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px;">
@@ -140,6 +182,7 @@
         <button class="btn" style="background-color: #2563eb; color: #fff; width: auto; padding: 10px 20px;" onclick="crearAlumno()">Crear Usuario Alumno</button>
       </div>
 
+      <!-- 4. DEFINIR CRITERIOS -->
       <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
         <h2 class="section-title" style="margin-top: 0;">4. Definir Criterios de Evaluación (Rúbrica)</h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px;">
@@ -172,6 +215,7 @@
         <button class="btn" style="background-color: #2563eb; color: #fff; width: auto; padding: 10px 20px;" onclick="crearCriterio()">Agregar Criterio a la Rúbrica</button>
       </div>
 
+      <!-- 5. ASIGNAR ALUMNO -->
       <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 20px;">
         <h2 class="section-title" style="margin-top: 0;">5. Asignar Alumno a un Grupo</h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
@@ -204,6 +248,7 @@
         <button class="btn" style="background-color: #2563eb; color: #fff; width: auto; padding: 10px 20px;" onclick="asignarAlumnoGrupo()">Vincular Alumno al Grupo</button>
       </div>
 
+      <!-- 6. RESULTADOS -->
       <div class="form-group" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd;">
         <h2 class="section-title" style="margin-top: 0;">6. Resultados Evaluados y Publicación</h2>
         <table>
@@ -302,16 +347,42 @@
     }
 
     async function cargarJornadas() {
-      const { data: jornadas, error } = await _supabase.from('jornadas').select('id_jornada, fecha, turno').order('id_jornada');
+      let query = _supabase.from('jornadas').select('id_jornada, fecha, turno').order('id_jornada');
+      if (competenciaActivaId) {
+        query = query.eq('id_competencia', parseInt(competenciaActivaId));
+      }
+      const { data: jornadas, error } = await query;
       const select = document.getElementById('grupo-jornada');
       select.innerHTML = '';
       if (error || !jornadas || jornadas.length === 0) {
-        select.innerHTML = '<option value="">No hay jornadas cargadas</option>';
+        select.innerHTML = '<option value="">No hay jornadas cargadas para esta competencia</option>';
         return;
       }
       jornadas.forEach(j => {
         select.innerHTML += `<option value="${j.id_jornada}">Jornada #${j.id_jornada} - ${j.fecha} (${j.turno})</option>`;
       });
+    }
+
+    async function crearJornada() {
+      const fecha = document.getElementById('nueva-jornada-fecha').value;
+      const turno = document.getElementById('nueva-jornada-turno').value;
+
+      if (!fecha) return alert('Selecciona la fecha de la jornada.');
+      if (!competenciaActivaId) return alert('Seleccione una competencia activa primero.');
+
+      const { error } = await _supabase.from('jornadas').insert([{
+        fecha: fecha,
+        turno: turno,
+        id_competencia: parseInt(competenciaActivaId)
+      }]);
+
+      if (error) {
+        alert('Error al crear jornada: ' + error.message);
+      } else {
+        alert('¡Jornada creada exitosamente!');
+        document.getElementById('nueva-jornada-fecha').value = '';
+        cargarJornadas();
+      }
     }
 
     async function crearJurado() {
@@ -396,7 +467,7 @@
       const { error } = await _supabase.from('grupos').insert([{ 
         nombre: nombre, 
         id_curso: parseInt(idCurso), 
-        id_jornada: idJornada,
+        id_jornada: parseInt(idJornada),
         id_competencia: parseInt(competenciaActivaId)
       }]);
 
@@ -497,7 +568,7 @@
 
       const { error } = await _supabase
         .from('grupo_integrantes')
-        .insert([{ id_grupo: idGrupo, id_alumno: idUsuario }]);
+        .insert([{ id_grupo: parseInt(idGrupo), id_alumno: parseInt(idUsuario) }]);
 
       if (error) {
         alert('Error al asignar alumno (puede que ya esté en el grupo): ' + error.message);
@@ -525,9 +596,9 @@
       ranking.forEach(r => {
         tbody.innerHTML += `
           <tr>
-            <td><strong>${r.grupo_nombre}</strong></td>
-            <td style="color: #2563eb; font-weight: bold;">${r.promedio_general} pts</td>
-            <td>${r.total_jurados} jurado(s)</td>
+            <td><strong>${r.grupo_nombre || r.nombre_grupo}</strong></td>
+            <td style="color: #2563eb; font-weight: bold;">${r.promedio_general || r.total} pts</td>
+            <td>${r.total_jurados || 1} jurado(s)</td>
             <td><span style="color: #16a34a; font-weight: bold;">✓ En evaluación</span></td>
           </tr>
         `;
