@@ -28,11 +28,16 @@
         <button type="submit">Siguiente</button>
       </form>
 
-      <!-- Enlace directo al ranking -->
+      <!-- Enlaces directos -->
       <br>
-      <div style="text-align: center;">
+      <div style="text-align: center; display: flex; flex-direction: column; gap: 10px;">
         <a href="Rankings.html" style="color: #1877f2; text-decoration: none; font-size: 0.9rem; font-weight: 500;">
           Ver Rankings y Orden de Mérito
+        </a>
+        
+        <!-- Enlace restringido exclusivamente para Jurados -->
+        <a href="#" onclick="accederNotasJurado(event)" style="color: #1e3a8a; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+          🔒 Ver Notas por Curso (Exclusivo Jurados)
         </a>
       </div>
     </div>
@@ -51,7 +56,6 @@
       const email = document.getElementById("usuario").value.trim();
       const pass = document.getElementById("contrasena").value;
 
-      // Consulta directa buscando coincidencia exacta de email y password_hash
       const { data, error } = await db
         .from("usuarios")
         .select("id_usuario, nombre, apellido, rol, id_competencia")
@@ -63,7 +67,6 @@
         return;
       }
 
-      // Manejo de múltiples registros o competencias por rol
       const validos = data.filter(usr => usr.id_competencia !== null);
 
       if (validos.length === 0) {
@@ -97,6 +100,18 @@
         location.href = "jurado.html";
       } else {
         location.href = "alumno.html";
+      }
+    }
+
+    // Función de protección de acceso para la vista de notas
+    function accederNotasJurado(e) {
+      e.preventDefault();
+      const usuarioGuardado = JSON.parse(sessionStorage.getItem("usuario"));
+
+      if (usuarioGuardado && usuarioGuardado.rol === "jurado") {
+        location.href = "notas.html";
+      } else {
+        alert("Acceso denegado. Debe iniciar sesión con una cuenta de Jurado para ver las notas por curso.");
       }
     }
   </script>
