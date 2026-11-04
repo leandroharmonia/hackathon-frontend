@@ -206,8 +206,9 @@
             <p id="info-jurado" class="subtitulo-jurado">Cargando datos del jurado...</p>
         </div>
         <div class="header-acciones">
-            <button id="btn-ver-ranking" class="btn-secundario" style="display: none;" onclick="irARankings()">Ver Rankings</button>
-            <button id="btn-ver-notas" class="btn-secundario btn-notas" style="display: none;" onclick="irANotas()">🔒 Ver Notas por Curso</button>
+            <!-- Botones visibles permanentemente en el header -->
+            <button id="btn-ver-ranking" class="btn-secundario" onclick="irARankings()">Ver Rankings</button>
+            <button id="btn-ver-notas" class="btn-secundario btn-notas" onclick="irANotas()">🔒 Ver Notas por Curso</button>
             <button class="btn-peligro" onclick="cerrarSesion()">Cerrar Sesión</button>
         </div>
     </header>
@@ -216,7 +217,7 @@
     <div class="form-group" id="competencia-container" style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #bae6fd; margin-bottom: 25px; border-left: 6px solid #2563eb;">
         <label for="select-competencia">Seleccionar Competencia / Edición a Evaluar:</label>
         <select id="select-competencia" onchange="cambiarCompetenciaActiva()">
-            <option value="">-- Seleccione una competencia --</option>
+            <option value="">Cargando competencias...</option>
         </select>
     </div>
 
@@ -314,6 +315,16 @@
                     opt.textContent = c.nombre;
                     selectComp.appendChild(opt);
                 });
+
+                // Si el jurado ya tenía una competencia guardada en la sesión, la selecciona automáticamente
+                if (usuarioLogueado.id_competencia) {
+                    selectComp.value = usuarioLogueado.id_competencia;
+                } else if (competencias.length >= 1) {
+                    // Seleccionar la primera por defecto si no hay selección previa
+                    selectComp.value = competencias[0].id_competencia;
+                }
+                
+                cambiarCompetenciaActiva();
             } else {
                 selectComp.innerHTML = '<option value="">No hay competencias registradas</option>';
             }
@@ -326,8 +337,6 @@
         const selectComp = document.getElementById('select-competencia');
         competenciaActivaId = selectComp.value;
         const panelOperativo = document.getElementById('panel-operativo-jurado');
-        const btnRanking = document.getElementById('btn-ver-ranking');
-        const btnNotas = document.getElementById('btn-ver-notas');
 
         document.getElementById('select-curso').innerHTML = '<option value="">-- Seleccionar Curso --</option>';
         document.getElementById('grupo-container').style.display = 'none';
@@ -335,14 +344,10 @@
 
         if (!competenciaActivaId) {
             panelOperativo.style.display = 'none';
-            btnRanking.style.display = 'none';
-            btnNotas.style.display = 'none';
             return;
         }
 
         panelOperativo.style.display = 'block';
-        btnRanking.style.display = 'block';
-        btnNotas.style.display = 'block';
 
         try {
             const { data: cursos, error: errCursos } = await db.from('curso').select('*');
