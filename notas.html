@@ -45,7 +45,34 @@
       font-size: 1.8rem;
     }
 
-    /* Selector de Cursos (7mo a 1ro) */
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .btn-volver {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .btn-print {
+      background-color: #16a34a;
+      color: #ffffff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .btn-print:hover {
+      background-color: #15803d;
+    }
+
     .selector-container {
       display: flex;
       justify-content: space-between;
@@ -104,26 +131,48 @@
       background-color: #f8fafc;
     }
 
-    .btn-volver {
-      display: inline-block;
-      margin-bottom: 15px;
-      color: var(--primary-color);
-      text-decoration: none;
-      font-weight: 600;
+    /* ESTILOS PARA IMPRESIÓN Y PDF */
+    @media print {
+      body {
+        background-color: #ffffff;
+        padding: 0;
+      }
+
+      .container-notas {
+        box-shadow: none;
+        border: none;
+        padding: 0;
+        max-width: 100%;
+      }
+
+      .btn-volver, .btn-print, .selector-container {
+        display: none !important;
+      }
+
+      .header-notas h1 {
+        font-size: 1.5rem;
+      }
+
+      .tabla-notas th, .tabla-notas td {
+        padding: 6px 8px;
+        font-size: 0.85rem;
+      }
     }
   </style>
 </head>
 <body>
 
 <div class="container-notas">
-  <a href="index.html" class="btn-volver">← Volver al inicio</a>
+  <div class="toolbar">
+    <a href="jurado.html" class="btn-volver">← Volver al Panel de Jurado</a>
+    <button onclick="window.print()" class="btn-print">🖨️ Imprimir / Exportar a PDF</button>
+  </div>
 
   <div class="header-notas">
     <h1>Notas Cargadas por Año y Curso</h1>
     <p>Consulte las calificaciones y puntajes registrados en la base de datos</p>
   </div>
 
-  <!-- Filtro en orden de 7mo a 1ro -->
   <div class="selector-container">
     <label for="select-curso">Seleccionar Año / Curso:</label>
     <select id="select-curso" onchange="filtrarNotas()">
@@ -163,7 +212,12 @@
 </div>
 
 <script>
-  // Credenciales activas del proyecto Supabase
+  const usuarioLogueado = JSON.parse(sessionStorage.getItem("usuario") || "{}");
+  if (!usuarioLogueado || usuarioLogueado.rol !== "jurado") {
+    alert("Acceso denegado: solo el personal de jurados puede acceder a esta sección.");
+    window.location.href = "index.html";
+  }
+
   const SUPABASE_URL = "https://lunpcumjmkbetdccsmuo.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1bnBjdW1qbWtiZXRkY2NzbXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODc1MjcsImV4cCI6MjEwNzU2MzUyN30.MyP9ADhCM8LBP7jvtRs-rUX1n-MYShBMA5qtFRMH3Xc";
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -171,9 +225,13 @@
   let notasCache = [];
 
   async function cargarNotas() {
-    const { data, error } = await db
-      .from('vista_ranking_grupos')
-      .select('*');
+    let query = db.from('vista_ranking_grupos').select('*');
+
+    if (usuarioLogueado.id_competencia) {
+      query = query.eq('id_competencia', usuarioLogueado.id_competencia);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Error al cargar calificaciones:', error);
@@ -189,17 +247,19 @@
   function filtrarNotas() {
     const cursoSeleccionado = document.getElementById('select-curso').value;
     
-    // Filtrar por el curso elegido
     let filtrados = notasCache.filter(item => {
       if (cursoSeleccionado === 'todos') return true;
-      return String(item.curso || item.anio) === String(cursoSeleccionado);
+      const c = String(item.curso || item.anio || item.id_curso || '');
+      return c.includes(cursoSeleccionado);
     });
 
-    // Ordenar de mayor a menor por Total y aplicar desempate
     filtrados.sort((a, b) => {
-      if (b.total !== a.total) return b.total - a.total;
-      if (b.defensa !== a.defensa) return b.defensa - a.defensa;
-      return b.base_datos - a.base_datos;
+      const totA = parseFloat(a.total || a.puntaje_total || 0);
+      const totB = parseFloat(b.total || b.puntaje_total || 0);
+      if (totB !== totA) return totB - totA;
+      const defA = parseFloat(a.defensa || 0);
+      const defB = parseFloat(b.defensa || 0);
+      return defB - defA;
     });
 
     const tbody = document.getElementById('tabla-notas-body');
@@ -214,14 +274,14 @@
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td style="font-weight: 700;">${index + 1}°</td>
-        <td style="text-align: left; font-weight: 600;">${item.nombre_grupo || 'Grupo ' + item.grupo_id}</td>
+        <td style="text-align: left; font-weight: 600;">${item.nombre_grupo || item.grupo || 'Grupo ' + (item.id_grupo || '')}</td>
         <td>${item.curso || item.anio || '-'}° Año</td>
-        <td>${(item.producto || 0).toFixed(1)}</td>
-        <td>${(item.stand_pitch || 0).toFixed(1)}</td>
-        <td>${(item.base_datos || 0).toFixed(1)}</td>
-        <td>${(item.defensa || 0).toFixed(1)}</td>
-        <td>${(item.carpeta_registro || 0).toFixed(1)}</td>
-        <td><strong>${(item.total || 0).toFixed(1)}</strong></td>
+        <td>${(parseFloat(item.producto) || 0).toFixed(1)}</td>
+        <td>${(parseFloat(item.stand_pitch) || 0).toFixed(1)}</td>
+        <td>${(parseFloat(item.base_datos) || 0).toFixed(1)}</td>
+        <td>${(parseFloat(item.defensa) || 0).toFixed(1)}</td>
+        <td>${(parseFloat(item.carpeta_registro) || 0).toFixed(1)}</td>
+        <td><strong>${(parseFloat(item.total || item.puntaje_total) || 0).toFixed(1)}</strong></td>
       `;
       tbody.appendChild(tr);
     });
