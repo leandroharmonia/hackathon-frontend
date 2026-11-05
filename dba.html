@@ -235,6 +235,7 @@
 
   <div class="nav-tablas">
     <button class="btn-tab activo" onclick="seleccionarTabla('competencias')">Competencias</button>
+    <button class="btn-tab" onclick="seleccionarTabla('cursos')">🏫 Cursos / Divisiones</button>
     <button class="btn-tab" onclick="seleccionarTabla('jornadas')">Jornadas</button>
     <button class="btn-tab" onclick="seleccionarTabla('grupos')">Grupos</button>
     <button class="btn-tab" onclick="seleccionarTabla('usuarios')">Usuarios</button>
@@ -277,7 +278,7 @@
 
 <script>
   const SUPABASE_URL = "https://lunpcumjmkbetdccsmuo.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1bnBjdW1qbWtiZXRkY2NzbXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODc1MjcsImV4cCI6MjEwNzU2MzUyN30.MyP9ADhCM8LBP7jvtRs-rUX1n-MYShBMA5qtFRMH3Xc";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3OiOiJzdXBhYmFzZSIsInJlZiI6Imx1bnBjdW1qbWtiZXRkY2NzbXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODc1MjcsImV4cCI6MjEwNzU2MzUyN30.MyP9ADhCM8LBP7jvtRs-rUX1n-MYShBMA5qtFRMH3Xc";
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   let tablaActual = 'competencias';
@@ -316,6 +317,7 @@
   function obtenerPK(tabla) {
     const pks = {
       'competencias': 'id_competencia',
+      'cursos': 'id_curso',
       'jornadas': 'id_jornada',
       'grupos': 'id_grupo',
       'usuarios': 'id_usuario',
@@ -388,7 +390,7 @@
       return;
     }
 
-    head.innerHTML = `<tr><th>ID Grupo</th><th>Nombre del Equipo</th><th>Curso</th><th>ID Alumno</th><th>Nombre y Apellido</th><th>Correo Electrónico</th></tr>`;
+    head.innerHTML = `<tr><th>ID Grupo</th><th>Nombre del Equipo</th><th>Curso / División</th><th>ID Alumno</th><th>Nombre y Apellido</th><th>Correo Electrónico</th></tr>`;
 
     if (!data || data.length === 0) {
       body.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #64748b;">No hay alumnos asignados a grupos todavía.</td></tr>`;
@@ -398,7 +400,7 @@
     datosGlobales = data.map(item => ({
       id_grupo: item.id_grupo,
       nombre_grupo: item.grupos ? item.grupos.nombre : '-',
-      curso: item.grupos ? `${item.grupos.id_curso}° Año` : '-',
+      curso: item.grupos ? (item.grupos.id_curso || '-') : '-',
       id_alumno: item.id_alumno,
       nombre_alumno: item.usuarios ? `${item.usuarios.nombre} ${item.usuarios.apellido}` : '-',
       email: item.usuarios ? item.usuarios.email : '-'
@@ -471,6 +473,14 @@
           </div>
         `;
       });
+    } else {
+      // Si la tabla está vacía, creamos un campo por defecto
+      contenedor.innerHTML = `
+        <div class="campo-modal">
+          <label>nombre</label>
+          <input type="text" id="input_nombre" placeholder="Nombre del curso / división (Ej: 7mo 2da)">
+        </div>
+      `;
     }
     document.getElementById('modal-editor').style.display = 'flex';
   }
