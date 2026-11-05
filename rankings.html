@@ -185,10 +185,6 @@
     let rankingCache = [];
     const usuarioLogueado = JSON.parse(sessionStorage.getItem("usuario") || "null");
 
-    if (usuarioLogueado && usuarioLogueado.id_competencia) {
-        idCompetenciaActiva = usuarioLogueado.id_competencia;
-    }
-
     function volverAlPanel() {
         if (!usuarioLogueado) {
             window.location.href = "index.html";
@@ -218,7 +214,8 @@
                     select.innerHTML += `<option value="${c.id_competencia}">${c.nombre}</option>`;
                 });
 
-                if (!idCompetenciaActiva || !comps.some(c => c.id_competencia == idCompetenciaActiva)) {
+                // Selecciona por defecto la primera de la lista si no hay otra activa
+                if (!idCompetenciaActiva) {
                     idCompetenciaActiva = comps[0].id_competencia;
                 }
                 
