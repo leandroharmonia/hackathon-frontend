@@ -106,6 +106,24 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 15px;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .buscador-input {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid #94a3b8;
+      width: 280px;
+      font-size: 0.9rem;
+      background: #f8fafc;
+      outline: none;
+    }
+
+    .buscador-input:focus {
+      border-color: #2563eb;
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
     }
 
     .btn-crear {
@@ -113,7 +131,7 @@
       color: white;
       border: none;
       padding: 8px 16px;
-      border-radius: 6px;
+      border-radius: 8px;
       font-weight: bold;
       cursor: pointer;
     }
@@ -222,12 +240,16 @@
     <button class="btn-tab" onclick="seleccionarTabla('usuarios')">Usuarios</button>
     <button class="btn-tab" onclick="seleccionarTabla('criterios_rubrica')">Rúbricas</button>
     <button class="btn-tab" onclick="seleccionarTabla('evaluaciones')">Evaluaciones</button>
+    <button class="btn-tab" onclick="seleccionarTabla('grupos_usuarios')">👥 Grupos e Integrantes</button>
   </div>
 
   <div class="panel-tabla">
     <div class="controles-tabla">
       <h2 id="titulo-tabla-activa" style="margin: 0; color: #1e3a8a; font-size: 1.2rem;">Tabla: competencias</h2>
-      <button class="btn-crear" onclick="abrirModalCrear()">+ Nuevo Registro</button>
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <input type="text" id="buscador-tabla" class="buscador-input" placeholder="🔍 Buscar en esta tabla..." onkeyup="filtrarTablaLocal()">
+        <button id="btn-nuevo-registro" class="btn-crear" onclick="abrirModalCrear()">+ Nuevo Registro</button>
+      </div>
     </div>
 
     <div class="table-responsive">
@@ -241,6 +263,7 @@
   </div>
 </div>
 
+<!-- Modal Formulario Dinámico -->
 <div id="modal-editor" class="modal">
   <div class="modal-contenido">
     <h3 id="modal-titulo">Editar Registro</h3>
@@ -277,8 +300,17 @@
     tablaActual = nombreTabla;
     document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('activo'));
     event.target.classList.add('activo');
-    document.getElementById('titulo-tabla-activa').innerText = `Tabla: ${nombreTabla}`;
-    cargarTabla();
+    document.getElementById('buscador-tabla').value = '';
+    
+    if (nombreTabla === 'grupos_usuarios') {
+      document.getElementById('titulo-tabla-activa').innerText = `Vista: Grupos e Integrantes`;
+      document.getElementById('btn-nuevo-registro').style.display = 'none';
+      cargarGruposUsuarios();
+    } else {
+      document.getElementById('titulo-tabla-activa').innerText = `Tabla: ${nombreTabla}`;
+      document.getElementById('btn-nuevo-registro').style.display = 'block';
+      cargarTabla();
+    }
   }
 
   function obtenerPK(tabla) {
@@ -297,7 +329,7 @@
     pkCampo = obtenerPK(tablaActual);
     const head = document.getElementById('tabla-head');
     const body = document.getElementById('tabla-body');
-    body.innerHTML = '<tr><td style="text-align: center;">Cargando...</td></tr>';
+    body.innerHTML = '<tr><td style="text-align: center;" colspan="10">Cargando...</td></tr>';
 
     const { data, error } = await db.from(tablaActual).select('*').order(pkCampo, { ascending: false });
 
@@ -317,7 +349,17 @@
     const columnas = Object.keys(datosGlobales[0]);
     head.innerHTML = `<tr>${columnas.map(col => `<th>${col}</th>`).join('')}<th>Acciones</th></tr>`;
 
-    body.innerHTML = datosGlobales.map(row => {
+    renderizarFilas(datosGlobales, columnas);
+  }
+
+  function renderizarFilas(data, columnas) {
+    const body = document.getElementById('tabla-body');
+    if (data.length === 0) {
+      body.innerHTML = '<tr><td colspan="10" style="text-align: center; color: #64748b;">No se encontraron registros.</td></tr>';
+      return;
+    }
+
+    body.innerHTML = data.map(row => {
       const idVal = row[pkCampo];
       const tds = columnas.map(col => `<td>${row[col] !== null ? row[col] : ''}</td>`).join('');
       return `<tr>${tds}<td>
@@ -325,6 +367,80 @@
         <button class="btn-accion btn-borrar" onclick="eliminarRegistro(${idVal})">Borrar</button>
       </td></tr>`;
     }).join('');
+  }
+
+  async function cargarGruposUsuarios() {
+    const head = document.getElementById('tabla-head');
+    const body = document.getElementById('tabla-body');
+    body.innerHTML = '<tr><td style="text-align: center;">Cargando relaciones...</td></tr>';
+
+    const { data, error } = await db
+      .from('grupo_integrantes')
+      .select(`
+        id_grupo,
+        id_alumno,
+        grupos (nombre, id_curso),
+        usuarios (nombre, apellido, email)
+      `);
+
+    if (error) {
+      alert("Error al cargar relaciones: " + error.message);
+      return;
+    }
+
+    head.innerHTML = `<tr><th>ID Grupo</th><th>Nombre del Equipo</th><th>Curso</th><th>ID Alumno</th><th>Nombre y Apellido</th><th>Correo Electrónico</th></tr>`;
+
+    if (!data || data.length === 0) {
+      body.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #64748b;">No hay alumnos asignados a grupos todavía.</td></tr>`;
+      return;
+    }
+
+    datosGlobales = data.map(item => ({
+      id_grupo: item.id_grupo,
+      nombre_grupo: item.grupos ? item.grupos.nombre : '-',
+      curso: item.grupos ? `${item.grupos.id_curso}° Año` : '-',
+      id_alumno: item.id_alumno,
+      nombre_alumno: item.usuarios ? `${item.usuarios.nombre} ${item.usuarios.apellido}` : '-',
+      email: item.usuarios ? item.usuarios.email : '-'
+    }));
+
+    renderizarFilasGruposUsuarios(datosGlobales);
+  }
+
+  function renderizarFilasGruposUsuarios(data) {
+    const body = document.getElementById('tabla-body');
+    if (data.length === 0) {
+      body.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #64748b;">No se encontraron registros.</td></tr>';
+      return;
+    }
+
+    body.innerHTML = data.map(row => `
+      <tr>
+        <td>${row.id_grupo}</td>
+        <td style="font-weight: 600; color: #1e3a8a;">${row.nombre_grupo}</td>
+        <td>${row.curso}</td>
+        <td>${row.id_alumno}</td>
+        <td>${row.nombre_alumno}</td>
+        <td>${row.email}</td>
+      </tr>
+    `).join('');
+  }
+
+  function filtrarTablaLocal() {
+    const texto = document.getElementById('buscador-tabla').value.toLowerCase();
+    
+    if (tablaActual === 'grupos_usuarios') {
+      const filtrados = datosGlobales.filter(item => 
+        Object.values(item).some(val => String(val).toLowerCase().includes(texto))
+      );
+      renderizarFilasGruposUsuarios(filtrados);
+    } else {
+      const columnas = datosGlobales.length > 0 ? Object.keys(datosGlobales[0]) : [];
+      const filtrados = datosGlobales.filter(row => 
+        columnas.some(col => String(row[col] || '').toLowerCase().includes(texto))
+      );
+      renderizarFilas(filtrados, columnas);
+    }
   }
 
   async function eliminarRegistro(id) {
