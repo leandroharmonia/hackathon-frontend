@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestor DBA - Control de Base de Datos</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #f0f4f8;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(30, 64, 175, 0.05) 0%, transparent 40%),
+        url('img/Grupos.jpg');
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-attachment: fixed;
+      background-size: cover;
+      color: #0f172a;
+      margin: 0;
+      padding: 30px 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1150px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.96);
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      border: 1px solid #bae6fd;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      border-bottom: 2px solid #bae6fd;
+      padding-bottom: 15px;
+    }
+
+    h1 {
+      color: #1e3a8a;
+      margin: 0;
+      font-size: 1.8rem;
+      font-weight: 800;
+    }
+
+    .subtitulo {
+      margin: 4px 0 0 0;
+      font-size: 0.9rem;
+      color: #475569;
+    }
+
+    .nav-tablas {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .btn-tab {
+      background: #e0f2fe;
+      color: #1e3a8a;
+      border: 1px solid #93c5fd;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-tab:hover, .btn-tab.activo {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #2563eb;
+    }
+
+    .btn-peligro {
+      background: #fee2e2;
+      color: #dc2626;
+      border: 1px solid #f87171;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .panel-tabla {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    }
+
+    .controles-tabla {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .btn-crear {
+      background: #16a34a;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f1f5f9;
+      color: #1e3a8a;
+      padding: 10px;
+      border-bottom: 2px solid #cbd5e1;
+      font-weight: 700;
+    }
+
+    td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    .btn-accion {
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: none;
+      font-size: 0.75rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-right: 4px;
+    }
+
+    .btn-editar { background: #d97706; color: white; }
+    .btn-borrar { background: #dc2626; color: white; }
+
+    /* Estilos Modal Editar/Crear */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-contenido {
+      background: #ffffff;
+      padding: 25px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    .modal-contenido h3 {
+      margin-top: 0;
+      color: #1e3a8a;
+    }
+
+    .campo-modal {
+      margin-bottom: 12px;
+    }
+
+    .campo-modal label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: bold;
+      margin-bottom: 4px;
+      color: #334155;
+    }
+
+    .campo-modal input {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+      border: 1px solid #94a3b8;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div>
+      <h1>Panel de Administrador de Base de Datos (DBA)</h1>
+      <p class="subtitulo">Gestión directa de lectura, escritura y eliminación de registros</p>
+    </div>
+    <button class="btn-peligro" onclick="cerrarSesion()">Cerrar Sesión</button>
+  </header>
+
+  <div class="nav-tablas">
+    <button class="btn-tab activo" onclick="seleccionarTabla('competencias')">Competencias</button>
+    <button class="btn-tab" onclick="seleccionarTabla('jornadas')">Jornadas</button>
+    <button class="btn-tab" onclick="seleccionarTabla('grupos')">Grupos</button>
+    <button class="btn-tab" onclick="seleccionarTabla('usuarios')">Usuarios</button>
+    <button class="btn-tab" onclick="seleccionarTabla('criterios_rubrica')">Rúbricas</button>
+    <button class="btn-tab" onclick="seleccionarTabla('evaluaciones')">Evaluaciones</button>
+  </div>
+
+  <div class="panel-tabla">
+    <div class="controles-tabla">
+      <h2 id="titulo-tabla-activa" style="margin: 0; color: #1e3a8a; font-size: 1.2rem;">Tabla: competencias</h2>
+      <button class="btn-crear" onclick="abrirModalCrear()">+ Nuevo Registro</button>
+    </div>
+
+    <div class="table-responsive">
+      <table id="tabla-datos">
+        <thead id="tabla-head"></thead>
+        <tbody id="tabla-body">
+          <tr><td style="text-align: center;">Cargando datos...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Formulario Dinámico -->
+<div id="modal-editor" class="modal">
+  <div class="modal-contenido">
+    <h3 id="modal-titulo">Editar Registro</h3>
+    <div id="modal-campos"></div>
+    <div style="display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end;">
+      <button onclick="cerrarModal()" style="background: #94a3b8; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Cancelar</button>
+      <button onclick="guardarRegistroModal()" style="background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold;">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://lunpcumjmkbetdccsmuo.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3OiOiJzdXBhYmFzZSIsInJlZiI6Imx1bnBjdW1qbWtiZXRkY2NzbXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODc1MjcsImV4cCI6MjEwNzU2MzUyN30.MyP9ADhCM8LBP7jvtRs-rUX1n-MYShBMA5qtFRMH3Xc";
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let tablaActual = 'competencias';
+  let datosGlobales = [];
+  let pkCampo = '';
+  let idEdicionActual = null;
+
+  function cerrarSesion() {
+    sessionStorage.clear();
+    window.location.href = "index.html";
+  }
+
+  function seleccionarTabla(nombreTabla) {
+    tablaActual = nombreTabla;
+    document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('activo'));
+    event.target.classList.add('activo');
+    document.getElementById('titulo-tabla-activa').innerText = `Tabla: ${nombreTabla}`;
+    cargarTabla();
+  }
+
+  function obtenerPK(tabla) {
+    const pks = {
+      'competencias': 'id_competencia',
+      'jornadas': 'id_jornada',
+      'grupos': 'id_grupo',
+      'usuarios': 'id_usuario',
+      'criterios_rubrica': 'id_criterio',
+      'evaluaciones': 'id_evaluacion'
+    };
+    return pks[tabla] || 'id';
+  }
+
+  async function cargarTabla() {
+    pkCampo = obtenerPK(tablaActual);
+    const head = document.getElementById('tabla-head');
+    const body = document.getElementById('tabla-body');
+    body.innerHTML = '<tr><td style="text-align: center;">Cargando...</td></tr>';
+
+    const { data, error } = await db.from(tablaActual).select('*').order(pkCampo, { ascending: false });
+
+    if (error) {
+      alert("Error al cargar datos: " + error.message);
+      return;
+    }
+
+    datosGlobales = data || [];
+
+    if (datosGlobales.length === 0) {
+      head.innerHTML = '';
+      body.innerHTML = '<tr><td style="text-align: center;">No hay registros en esta tabla.</td></tr>';
+      return;
+    }
+
+    // Armar cabecera dinámica
+    const columnas = Object.keys(datosGlobales[0]);
+    head.innerHTML = `<tr>${columnas.map(col => `<th>${col}</th>`).join('')}<th>Acciones</th></tr>`;
+
+    // Armar filas de datos
+    body.innerHTML = datosGlobales.map(row => {
+      const idVal = row[pkCampo];
+      const tds = columnas.map(col => `<td>${row[col] !== null ? row[col] : ''}</td>`).join('');
+      return `<tr>${tds}<td>
+        <button class="btn-accion btn-editar" onclick="abrirModalEditar(${idVal})">Editar</button>
+        <button class="btn-accion btn-borrar" onclick="eliminarRegistro(${idVal})">Borrar</button>
+      </td></tr>`;
+    }).join('');
+  }
+
+  async function eliminarRegistro(id) {
+    if (!confirm(`¿Estás seguro de eliminar el registro #${id} de la tabla ${tablaActual}?`)) return;
+
+    const { error } = await db.from(tablaActual).delete().eq(pkCampo, id);
+    if (error) {
+      alert("Error al eliminar: " + error.message);
+    } else {
+      cargarTabla();
+    }
+  }
+
+  function abrirModalCrear() {
+    idEdicionActual = null;
+    document.getElementById('modal-titulo').innerText = `Nuevo Registro en ${tablaActual}`;
+    const contenedor = document.getElementById('modal-campos');
+    contenedor.innerHTML = '';
+
+    if (datosGlobales.length > 0) {
+      const columnas = Object.keys(datosGlobales[0]);
+      columnas.forEach(col => {
+        if (col === pkCampo) return; // omitir PK autogenerada
+        contenedor.innerHTML += `
+          <div class="campo-modal">
+            <label>${col}</label>
+            <input type="text" id="input_${col}" placeholder="${col}">
+          </div>
+        `;
+      });
+    }
+    document.getElementById('modal-editor').style.display = 'flex';
+  }
+
+  function abrirModalEditar(id) {
+    idEdicionActual = id;
+    document.getElementById('modal-titulo').innerText = `Editar Registro #${id} en ${tablaActual}`;
+    const contenedor = document.getElementById('modal-campos');
+    contenedor.innerHTML = '';
+
+    const registro = datosGlobales.find(r => r[pkCampo] == id);
+    if (!registro) return;
+
+    Object.keys(registro).forEach(col => {
+      if (col === pkCampo) return;
+      contenedor.innerHTML += `
+        <div class="campo-modal">
+          <label>${col}</label>
+          <input type="text" id="input_${col}" value="${registro[col] !== null ? registro[col] : ''}">
+        </div>
+      `;
+    });
+    document.getElementById('modal-editor').style.display = 'flex';
+  }
+
+  function cerrarModal() {
+    document.getElementById('modal-editor').style.display = 'none';
+  }
+
+  async function guardarRegistroModal() {
+    const objetoGuardar = {};
+    const inputs = document.querySelectorAll('#modal-campos input');
+    
+    inputs.forEach(inp => {
+      const colName = inp.id.replace('input_', '');
+      objetoGuardar[colName] = inp.value.trim() === '' ? null : inp.value.trim();
+    });
+
+    if (idEdicionActual === null) {
+      // Insertar nuevo
+      const { error } = await db.from(tablaActual).insert([objetoGuardar]);
+      if (error) alert("Error al crear: " + error.message);
+      else { cerrarModal(); cargarTabla(); }
+    } else {
+      // Actualizar existente
+      const { error } = await db.from(tablaActual).update(objetoGuardar).eq(pkCampo, idEdicionActual);
+      if (error) alert("Error al actualizar: " + error.message);
+      else { cerrarModal(); cargarTabla(); }
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', cargarTabla);
+</script>
+
+</body>
+</html>
