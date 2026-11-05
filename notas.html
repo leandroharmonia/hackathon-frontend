@@ -6,6 +6,8 @@
   <title>Notas Cargadas por Curso - Hackathon 2026</title>
   <link rel="stylesheet" href="css/estilos.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Librería html2pdf para forzar el nombre exacto del archivo descargado -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     :root {
       --primary-color: #1877f2;
@@ -156,54 +158,14 @@
     .tabla-notas tr:nth-child(even) {
       background-color: #f8fafc;
     }
-
-    @media print {
-      body {
-        background: #ffffff !important;
-        padding: 0;
-        color: #000000;
-      }
-
-      .container-notas {
-        box-shadow: none;
-        border: none;
-        padding: 0;
-        max-width: 100%;
-        background-color: #ffffff;
-      }
-
-      .toolbar, .selector-container {
-        display: none !important;
-      }
-
-      .header-notas {
-        border-bottom: 2px solid #000;
-      }
-
-      .header-notas h1 {
-        color: #000;
-        font-size: 1.6rem;
-      }
-
-      .tabla-notas th {
-        background-color: #e2e8f0 !important;
-        color: #000 !important;
-      }
-
-      .tabla-notas th, .tabla-notas td {
-        border: 1px solid #64748b !important;
-        padding: 6px 8px;
-        font-size: 0.85rem;
-      }
-    }
   </style>
 </head>
 <body>
 
-<div class="container-notas">
+<div class="container-notas" id="area-impresion">
   <div class="toolbar">
     <a href="jurado.html" class="btn-volver">← Volver al Panel de Jurado</a>
-    <button onclick="exportarPDF()" class="btn-print">🖨️ Imprimir / Exportar a PDF</button>
+    <button onclick="exportarPDF()" class="btn-print" id="btn-pdf">🖨️ Descargar PDF con Nombre Personalizado</button>
   </div>
 
   <div class="header-notas">
@@ -314,7 +276,7 @@
     }
 
     const optionSelected = select.options[select.selectedIndex];
-    nombreCompetenciaActiva = optionSelected ? optionSelected.text : "Competencia";
+    nombreCompetenciaActiva = optionSelected ? optionSelected.text.trim() : "Competencia";
 
     document.getElementById('subtitulo-competencia').textContent = `Competencia: ${nombreCompetenciaActiva} — Calificaciones y puntajes registrados`;
 
@@ -454,16 +416,30 @@
 
   function exportarPDF() {
     const anioActual = new Date().getFullYear();
-    const nombreComp = nombreCompetenciaActiva ? nombreCompetenciaActiva.trim() : "Competencia";
+    const cursoSeleccionado = document.getElementById('select-curso').value;
+    const nombreCursoTexto = cursoSeleccionado === 'todos' ? 'Todos los Cursos' : `${cursoSeleccionado}° Año`;
+    const nombreComp = nombreCompetenciaActiva ? nombreCompetenciaActiva : "Competencia";
     
-    const tituloOriginal = document.title;
-    document.title = `Notas Cargadas ${anioActual}-${nombreComp}`;
-    
-    window.print();
+    // Nombre exacto y limpio para el archivo PDF descargado
+    const nombreArchivo = `Notas Cargadas ${nombreCursoTexto} - ${nombreComp} (${anioActual}).pdf`;
 
-    setTimeout(() => {
-      document.title = tituloOriginal;
-    }, 1000);
+    const elemento = document.getElementById('area-impresion');
+    const botonOriginal = document.querySelector('.toolbar');
+    
+    // Ocultar temporalmente los botones durante la generación del PDF
+    botonOriginal.style.display = 'none';
+
+    const opciones = {
+      margin:       10,
+      filename:     nombreArchivo,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    };
+
+    html2pdf().from(elemento).set(opciones).save().then(() => {
+      botonOriginal.style.display = 'flex';
+    });
   }
 
   window.onload = inicializarNotas;
