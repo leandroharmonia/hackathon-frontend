@@ -159,7 +159,6 @@
     .btn-editar { background: #d97706; color: white; }
     .btn-borrar { background: #dc2626; color: white; }
 
-    /* Estilos Modal Editar/Crear */
     .modal {
       display: none;
       position: fixed;
@@ -242,7 +241,6 @@
   </div>
 </div>
 
-<!-- Modal Formulario Dinámico -->
 <div id="modal-editor" class="modal">
   <div class="modal-contenido">
     <h3 id="modal-titulo">Editar Registro</h3>
@@ -256,13 +254,19 @@
 
 <script>
   const SUPABASE_URL = "https://lunpcumjmkbetdccsmuo.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3OiOiJzdXBhYmFzZSIsInJlZiI6Imx1bnBjdW1qbWtiZXRkY2NzbXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODc1MjcsImV4cCI6MjEwNzU2MzUyN30.MyP9ADhCM8LBP7jvtRs-rUX1n-MYShBMA5qtFRMH3Xc";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1bnBjdW1qbWtiZXRkY2NzbXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODc1MjcsImV4cCI6MjEwNzU2MzUyN30.MyP9ADhCM8LBP7jvtRs-rUX1n-MYShBMA5qtFRMH3Xc";
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   let tablaActual = 'competencias';
   let datosGlobales = [];
   let pkCampo = '';
   let idEdicionActual = null;
+
+  const usuarioLogueado = JSON.parse(sessionStorage.getItem("usuario") || "{}");
+  if (!usuarioLogueado || (usuarioLogueado.rol !== "super_admin" && usuarioLogueado.rol !== "dba" && usuarioLogueado.rol !== "DBA")) {
+      alert("Acceso denegado. Se requieren permisos de Administrador de Base de Datos.");
+      window.location.href = "index.html";
+  }
 
   function cerrarSesion() {
     sessionStorage.clear();
@@ -310,11 +314,9 @@
       return;
     }
 
-    // Armar cabecera dinámica
     const columnas = Object.keys(datosGlobales[0]);
     head.innerHTML = `<tr>${columnas.map(col => `<th>${col}</th>`).join('')}<th>Acciones</th></tr>`;
 
-    // Armar filas de datos
     body.innerHTML = datosGlobales.map(row => {
       const idVal = row[pkCampo];
       const tds = columnas.map(col => `<td>${row[col] !== null ? row[col] : ''}</td>`).join('');
@@ -345,7 +347,7 @@
     if (datosGlobales.length > 0) {
       const columnas = Object.keys(datosGlobales[0]);
       columnas.forEach(col => {
-        if (col === pkCampo) return; // omitir PK autogenerada
+        if (col === pkCampo) return;
         contenedor.innerHTML += `
           <div class="campo-modal">
             <label>${col}</label>
@@ -392,12 +394,10 @@
     });
 
     if (idEdicionActual === null) {
-      // Insertar nuevo
       const { error } = await db.from(tablaActual).insert([objetoGuardar]);
       if (error) alert("Error al crear: " + error.message);
       else { cerrarModal(); cargarTabla(); }
     } else {
-      // Actualizar existente
       const { error } = await db.from(tablaActual).update(objetoGuardar).eq(pkCampo, idEdicionActual);
       if (error) alert("Error al actualizar: " + error.message);
       else { cerrarModal(); cargarTabla(); }
