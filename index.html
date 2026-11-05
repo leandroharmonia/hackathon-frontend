@@ -89,9 +89,14 @@
     });
 
     function redireccionar(usuario) {
-      if (usuario.rol === "coordinador") {
+      // Normalizamos el rol a minúsculas o evaluamos las variantes ('DBA', 'dba', 'super_admin')
+      const rol = (usuario.rol || "").trim().toLowerCase();
+
+      if (rol === "dba" || rol === "super_admin") {
+        location.href = "dba.html";
+      } else if (rol === "coordinador") {
         location.href = "admin.html";
-      } else if (usuario.rol === "jurado") {
+      } else if (rol === "jurado") {
         location.href = "jurado.html";
       } else {
         location.href = "alumno.html";
