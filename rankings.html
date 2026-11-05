@@ -72,7 +72,7 @@
         background-color: #e0f2fe;
         padding: 14px 20px;
         border-radius: 12px;
-        margin-bottom: 20px;
+        margin-bottom: 15px;
         border: 1px solid #bae6fd;
       }
 
@@ -136,11 +136,11 @@
         <button class="btn-volver" onclick="volverAlPanel()">← Volver al Panel</button>
     </header>
 
-    <!-- Selector opcional por si ingresa directo sin sesión -->
-    <div id="selector-competencia-container" style="display: none; background: #ffffff; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #bae6fd;">
-        <label for="select-competencia-externa" style="display: block; margin-bottom: 8px; font-weight: bold; color: #1e3a8a;">Seleccione la Competencia a Visualizar:</label>
-        <select id="select-competencia-externa" onchange="cambiarCompetenciaExterna()" style="width: 100%; padding: 10px; border-radius: 8px; background: #f8fafc; color: #0f172a; border: 1px solid #94a3b8;">
-            <option value="">-- Seleccione una competencia --</option>
+    <!-- Selector de Competencia -->
+    <div class="selector-curso-container">
+        <label for="select-competencia">Seleccionar Competencia:</label>
+        <select id="select-competencia" onchange="cambiarCompetencia()">
+            <option value="">-- Cargando competencias --</option>
         </select>
     </div>
 
@@ -185,6 +185,10 @@
     let rankingCache = [];
     const usuarioLogueado = JSON.parse(sessionStorage.getItem("usuario") || "null");
 
+    if (usuarioLogueado && usuarioLogueado.id_competencia) {
+        idCompetenciaActiva = usuarioLogueado.id_competencia;
+    }
+
     function volverAlPanel() {
         if (!usuarioLogueado) {
             window.location.href = "index.html";
@@ -200,38 +204,47 @@
     }
 
     async function inicializarRankings() {
-        if (usuarioLogueado && usuarioLogueado.id_competencia) {
-            idCompetenciaActiva = usuarioLogueado.id_competencia;
-            cargarNombreCompetencia(idCompetenciaActiva);
-            cargarRankings(idCompetenciaActiva);
-        } else {
-            document.getElementById('selector-competencia-container').style.display = 'block';
-            await cargarListaCompetenciasExterna();
+        await cargarListaCompetencias();
+    }
+
+    async function cargarListaCompetencias() {
+        try {
+            const { data: comps, error } = await db.from('competencias').select('*').order('id_competencia', { ascending: false });
+            const select = document.getElementById('select-competencia');
+            select.innerHTML = '';
+            
+            if (comps && comps.length > 0) {
+                comps.forEach(c => {
+                    select.innerHTML += `<option value="${c.id_competencia}">${c.nombre}</option>`;
+                });
+
+                if (!idCompetenciaActiva || !comps.some(c => c.id_competencia == idCompetenciaActiva)) {
+                    idCompetenciaActiva = comps[0].id_competencia;
+                }
+                
+                select.value = idCompetenciaActiva;
+                await cambiarCompetencia();
+            } else {
+                select.innerHTML = '<option value="">No hay competencias disponibles</option>';
+            }
+        } catch (err) {
+            console.error("Error al cargar competencias:", err);
         }
     }
 
-    async function cargarListaCompetenciasExterna() {
-        const { data: comps } = await db.from('competencias').select('*').order('id_competencia', { ascending: false });
-        const select = document.getElementById('select-competencia-externa');
-        select.innerHTML = '<option value="">-- Seleccione una competencia --</option>';
-        if (comps) {
-            comps.forEach(c => {
-                select.innerHTML += `<option value="${c.id_competencia}">${c.nombre}</option>`;
-            });
-        }
-    }
-
-    function cambiarCompetenciaExterna() {
-        const select = document.getElementById('select-competencia-externa');
+    async function cambiarCompetencia() {
+        const select = document.getElementById('select-competencia');
         idCompetenciaActiva = select.value;
-        if (idCompetenciaActiva) {
-            cargarNombreCompetencia(idCompetenciaActiva);
-            cargarRankings(idCompetenciaActiva);
-        } else {
-            document.getElementById('tabla-ranking').innerHTML = '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #64748b;">Seleccione una competencia para ver el ranking.</td></tr>';
+        
+        if (!idCompetenciaActiva) {
+            document.getElementById('tabla-ranking').innerHTML = '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #64748b;">Seleccione una competencia válida.</td></tr>';
             document.getElementById('subtitulo-competencia').textContent = '';
             rankingCache = [];
+            return;
         }
+
+        await cargarNombreCompetencia(idCompetenciaActiva);
+        await cargarRankings(idCompetenciaActiva);
     }
 
     async function cargarNombreCompetencia(idComp) {
@@ -286,7 +299,6 @@
                     }
                 }
 
-                // Calcular promedio entre los jurados que evaluaron al grupo
                 let promedioGrupo = cantidadJurados > 0 ? (sumaPuntajesGrupo / cantidadJurados) : 0;
 
                 rankingData.push({
@@ -296,7 +308,6 @@
                 });
             }
 
-            // Ordenar de mayor a menor promedio
             rankingData.sort((a, b) => b.puntaje - a.puntaje);
             rankingCache = rankingData;
 
