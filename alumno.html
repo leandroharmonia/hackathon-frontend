@@ -1,183 +1,269 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Evaluación del Alumno</title>
-    <link rel="stylesheet" href="css/notas.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluación del Alumno</title>
+    <link rel="stylesheet" href="css/notas.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
 <div class="texto">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-        <div class="titulos" style="margin-bottom: 0;">
-            <h3>SISTEMA DE EVALUACIÓN</h3>
-            <h1>Evaluación personal y grupal</h1>
-            <h4 id="nombre-grupo">Actividad: Cargando equipo...</h4>
-        </div>
-        <!-- Botón para ver ranking directo del alumno -->
-        <button onclick="irARankings()" style="background: #2563eb; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">Ver Ranking</button>
-    </div>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+        <div class="titulos" style="margin-bottom: 0;">
+            <h3>SISTEMA DE EVALUACIÓN</h3>
+            <h1>Evaluación personal y grupal</h1>
+            <h4 id="nombre-grupo">Actividad: Cargando equipo...</h4>
+        </div>
+        <!-- Botón para ver ranking directo del alumno -->
+        <button onclick="irARankings()" style="background: #2563eb; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">Ver Ranking</button>
+    </div>
 
-    <h3>Puntaje individual</h3>
-    <div id="puntaje-individual" class="puntajesi">
-        <p>Cargando tu calificación individual...</p>
-    </div>
+    <!-- FILTRO DE COMPETENCIAS / EDICIONES -->
+    <div style="margin-bottom: 15px; background: rgba(19, 34, 71, 0.7); padding: 10px; border-radius: 8px; border: 1px solid #1e3a75;">
+        <label for="selectCompetencia" style="display: block; font-size: 0.8rem; font-weight: bold; color: #60a5fa; margin-bottom: 4px;">Filtrar Competencia / Edición:</label>
+        <select id="selectCompetencia" onchange="cargarDatosAlumno()" style="width: 100%; padding: 7px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #334155; font-size: 0.85rem;">
+            <option value="">Cargando competencias...</option>
+        </select>
+    </div>
 
-    <h3>Puntaje grupal</h3>
-    <div id="puntaje-grupal" class="puntajesg">
-        <p>Buscando calificaciones grupales de los jurados...</p>
-    </div>
+    <h3>Puntaje individual</h3>
+    <div id="puntaje-individual" class="puntajesi">
+        <p>Cargando tu calificación individual...</p>
+    </div>
 
-    <div style="margin-top: 25px;">
-        <button onclick="cerrarSesion()" style="background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid #f87171; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">Cerrar Sesión</button>
-    </div>
+    <h3>Puntaje grupal</h3>
+    <div id="puntaje-grupal" class="puntajesg">
+        <p>Buscando calificaciones grupales de los jurados...</p>
+    </div>
+
+    <!-- APARTADO DE PROMEDIO GENERAL GRUPAL -->
+    <div style="margin-top: 15px; background: rgba(19, 34, 71, 0.9); border: 1px solid #1e3a75; padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; color: #fff;">
+        <span style="font-weight: bold; font-size: 0.9rem; color: #60a5fa;">Promedio General Grupal:</span>
+        <span id="promedio-grupal-final" style="font-size: 1.1rem; font-weight: bold; color: #34d399;">-- / 100</span>
+    </div>
+
+    <div style="margin-top: 25px;">
+        <button onclick="cerrarSesion()" style="background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid #f87171; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">Cerrar Sesión</button>
+    </div>
 </div>
 
 <img src="img/Grupos.jpg" alt="Imagen de fondo" class="imagen-fondo">
 
 <script>
-    const SUPABASE_URL = "https://lunpcumjmkbetdccsmuo.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1bnBjdW1qbWtiZXRkY2NzbXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODc1MjcsImV4cCI6MjEwNzU2MzUyN30.MyP9ADhCM8LBP7jvtRs-rUX1n-MYShBMA5qtFRMH3Xc";
-    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const SUPABASE_URL = "https://lunpcumjmkbetdccsmuo.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1bnBjdW1qbWtiZXRkY2NzbXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODc1MjcsImV4cCI6MjEwNzU2MzUyN30.MyP9ADhCM8LBP7jvtRs-rUX1n-MYShBMA5qtFRMH3Xc";
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const usuarioLogueado = JSON.parse(sessionStorage.getItem("usuario"));
-    if (!usuarioLogueado || usuarioLogueado.rol !== "alumno") {
-        alert("Acceso denegado. Debe iniciar sesión como Alumno.");
-        window.location.href = "index.html";
-    }
+    const usuarioLogueado = JSON.parse(sessionStorage.getItem("usuario"));
+    if (!usuarioLogueado || usuarioLogueado.rol !== "alumno") {
+        alert("Acceso denegado. Debe iniciar sesión como Alumno.");
+        window.location.href = "index.html";
+    }
 
-    function cerrarSesion() {
-        sessionStorage.clear();
-        window.location.href = "index.html";
-    }
+    function cerrarSesion() {
+        sessionStorage.clear();
+        window.location.href = "index.html";
+    }
 
-    function irARankings() {
-        window.location.href = "rankings.html"; // <-- Minúsculas
-    }
+    function irARankings() {
+        window.location.href = "rankings.html"; // <-- Minúsculas
+    }
 
-    async function cargarDatosAlumno() {
-        const divIndividual = document.getElementById('puntaje-individual');
-        const divGrupal = document.getElementById('puntaje-grupal');
-        const h4Grupo = document.getElementById('nombre-grupo');
+    // Cargar las competencias/ediciones en el selector desplegable
+    async function cargarFiltroCompetencias() {
+        const select = document.getElementById('selectCompetencia');
+        try {
+            const { data: ediciones, error } = await db
+                .from('ediciones')
+                .select('id_edicion, nombre, anio, competencias(nombre)');
 
-        try {
-            const { data: relGrupo, error: errRel } = await db
-                .from('grupo_integrantes')
-                .select('id_grupo, grupos(nombre, id_competencia)')
-                .eq('id_alumno', usuarioLogueado.id_usuario)
-                .maybeSingle();
+            if (error) throw error;
 
-            if (errRel || !relGrupo) {
-                h4Grupo.textContent = "Actividad: Sin grupo asignado";
-                divIndividual.innerHTML = '<p style="color: #f87171;">No estás asignado a ningún grupo todavía.</p>';
-                divGrupal.innerHTML = '<p style="color: #f87171;">Sin calificaciones disponibles.</p>';
-                return;
-            }
+            if (ediciones && ediciones.length > 0) {
+                select.innerHTML = '';
+                ediciones.forEach(ed => {
+                    const nombreComp = ed.competencias ? ed.competencias.nombre : 'Competencia';
+                    const option = document.createElement('option');
+                    option.value = ed.id_edicion;
+                    option.textContent = `${nombreComp} - ${ed.nombre} (${ed.anio})`;
+                    select.appendChild(option);
+                });
+            } else {
+                select.innerHTML = '<option value="">Sin competencias registradas</option>';
+            }
+        } catch (err) {
+            console.error("Error al cargar competencias:", err);
+            select.innerHTML = '<option value="">Error al cargar filtro</option>';
+        }
+    }
 
-            const idGrupo = relGrupo.id_grupo;
-            const nombreGrupo = relGrupo.grupos ? relGrupo.grupos.nombre : 'Equipo';
-            
-            if (relGrupo.grupos && relGrupo.grupos.id_competencia) {
-                usuarioLogueado.id_competencia = relGrupo.grupos.id_competencia;
-                sessionStorage.setItem("usuario", JSON.stringify(usuarioLogueado));
-            }
+    async function cargarDatosAlumno() {
+        const divIndividual = document.getElementById('puntaje-individual');
+        const divGrupal = document.getElementById('puntaje-grupal');
+        const h4Grupo = document.getElementById('nombre-grupo');
+        const lblPromedioFinal = document.getElementById('promedio-grupal-final');
+        const idEdicionFiltro = document.getElementById('selectCompetencia').value;
 
-            h4Grupo.textContent = `Actividad: Evaluaciones para el equipo "${nombreGrupo}"`;
+        try {
+            const { data: relGrupo, error: errRel } = await db
+                .from('grupo_integrantes')
+                .select('id_grupo, grupos(nombre, id_jornada, jornadas(id_edicion))')
+                .eq('id_alumno', usuarioLogueado.id_usuario);
 
-            const { data: notaInd, error: errNotaInd } = await db
-                .from('defensa_individual')
-                .select('*')
-                .eq('id_alumno', usuarioLogueado.id_usuario)
-                .maybeSingle();
+            if (errRel || !relGrupo || relGrupo.length === 0) {
+                h4Grupo.textContent = "Actividad: Sin grupo asignado";
+                divIndividual.innerHTML = '<p style="color: #f87171;">No estás asignado a ningún grupo todavía.</p>';
+                divGrupal.innerHTML = '<p style="color: #f87171;">Sin calificaciones disponibles.</p>';
+                lblPromedioFinal.textContent = "0.00 / 100";
+                return;
+            }
 
-            if (!notaInd) {
-                divIndividual.innerHTML = `
-                    <div style="background: rgba(19, 34, 71, 0.9); border: 1px solid #1e3a75; padding: 12px; border-radius: 8px; color: #fff;">
-                        <strong style="color: #60a5fa;">${usuarioLogueado.nombre} ${usuarioLogueado.apellido} (Tú)</strong>
-                        <p style="margin: 6px 0 0 0; color: #94a3b8; font-size: 0.9rem;">Aún no tienes calificaciones individuales registradas.</p>
-                    </div>
-                `;
-            } else {
-                let detallePuntaje = '';
-                let totalInd = notaInd.total || notaInd.puntaje || notaInd.nota || 0;
+            // Filtrar grupo según la edición seleccionada si aplica
+            let grupoValido = relGrupo[0];
+            if (idEdicionFiltro) {
+                const encontrado = relGrupo.find(r => r.grupos && r.grupos.jornadas && r.grupos.jornadas.id_edicion == idEdicionFiltro);
+                if (encontrado) grupoValido = encontrado;
+            }
 
-                if (notaInd.nivel_1 !== undefined || notaInd.n1 !== undefined) {
-                    const n1 = notaInd.nivel_1 || notaInd.n1 || 0;
-                    const n2 = notaInd.nivel_2 || notaInd.n2 || 0;
-                    const n3 = notaInd.nivel_3 || notaInd.n3 || 0;
-                    const vivo = notaInd.cambio_vivo || notaInd.vivo || 0;
-                    detallePuntaje = `
-                        <div>• Nivel 1: <strong>${n1}</strong> / 5 pts</div>
-                        <div>• Nivel 2: <strong>${n2}</strong> / 5 pts</div>
-                        <div>• Nivel 3: <strong>${n3}</strong> / 5 pts</div>
-                        <div>• Cambio en vivo / Pizarra: <strong>${vivo}</strong> / 10 pts</div>
-                    `;
-                }
+            const idGrupo = grupoValido.id_grupo;
+            const nombreGrupo = grupoValido.grupos ? grupoValido.grupos.nombre : 'Equipo';
+            
+            if (grupoValido.grupos && grupoValido.grupos.jornadas && grupoValido.grupos.jornadas.id_edicion) {
+                usuarioLogueado.id_edicion = grupoValido.grupos.jornadas.id_edicion;
+                sessionStorage.setItem("usuario", JSON.stringify(usuarioLogueado));
+            }
 
-                divIndividual.innerHTML = `
-                    <div style="background: rgba(19, 34, 71, 0.9); border: 1px solid #1e3a75; padding: 12px; border-radius: 8px; color: #fff;">
-                        <strong style="color: #60a5fa;">${usuarioLogueado.nombre} ${usuarioLogueado.apellido} (Tú)</strong>
-                        <div style="margin-top: 8px; font-size: 0.9rem;">
-                            ${detallePuntaje}
-                        </div>
-                        <div style="margin-top: 8px; text-align: right; font-weight: bold; color: #38bdf8; font-size: 1rem; border-top: 1px solid #1e3a75; padding-top: 6px;">
-                            Total Individual: ${totalInd} pts
-                        </div>
-                    </div>
-                `;
-            }
+            h4Grupo.textContent = `Actividad: Evaluaciones para el equipo "${nombreGrupo}"`;
 
-            const { data: evaluaciones, error: errEval } = await db
-                .from('evaluaciones')
-                .select('id_evaluacion, estado')
-                .eq('id_grupo', idGrupo);
+            const { data: notaInd, error: errNotaInd } = await db
+                .from('defensa_individual')
+                .select('*')
+                .eq('id_alumno', usuarioLogueado.id_usuario)
+                .maybeSingle();
 
-            if (errEval) throw errEval;
+            if (!notaInd) {
+                divIndividual.innerHTML = `
+                    <div style="background: rgba(19, 34, 71, 0.9); border: 1px solid #1e3a75; padding: 12px; border-radius: 8px; color: #fff;">
+                        <strong style="color: #60a5fa;">${usuarioLogueado.nombre} ${usuarioLogueado.apellido} (Tú)</strong>
+                        <p style="margin: 6px 0 0 0; color: #94a3b8; font-size: 0.9rem;">Aún no tienes calificaciones individuales registradas.</p>
+                    </div>
+                `;
+            } else {
+                let totalInd = notaInd.total || notaInd.puntaje || notaInd.nota || 0;
+                let detallePuntaje = '';
 
-            if (!evaluaciones || evaluaciones.length === 0) {
-                divGrupal.innerHTML = '<p style="color: #94a3b8;">Tu equipo aún no ha recibido calificaciones grupales de los jurados.</p>';
-            } else {
-                divGrupal.innerHTML = '';
-                for (let ev of evaluaciones) {
-                    const { data: detalles } = await db
-                        .from('evaluacion_detalle')
-                        .select('puntaje, criterios_rubrica(nombre, puntaje_maximo)')
-                        .eq('id_evaluacion', ev.id_evaluacion);
+                if (notaInd.nivel_1 !== undefined || notaInd.n1 !== undefined) {
+                    const n1 = notaInd.nivel_1 || notaInd.n1 || 0;
+                    const n2 = notaInd.nivel_2 || notaInd.n2 || 0;
+                    const n3 = notaInd.nivel_3 || notaInd.n3 || 0;
+                    const vivo = notaInd.cambio_vivo || notaInd.vivo || 0;
+                    detallePuntaje = `
+                        <div>• Nivel 1: <strong>${n1}</strong> / 5 pts</div>
+                        <div>• Nivel 2: <strong>${n2}</strong> / 5 pts</div>
+                        <div>• Nivel 3: <strong>${n3}</strong> / 5 pts</div>
+                        <div>• Cambio en vivo / Pizarra: <strong>${vivo}</strong> / 10 pts</div>
+                    `;
+                } else if (notaInd.comentario) {
+                    detallePuntaje = `<div>Comentario: ${notaInd.comentario}</div>`;
+                }
 
-                    let htmlCriterios = '';
-                    let sumaTotalGrupal = 0;
-                    if (detalles) {
-                        detalles.forEach(d => {
-                            if (d.criterios_rubrica) {
-                                sumaTotalGrupal += d.puntaje;
-                                htmlCriterios += `<div style="margin: 4px 0;">• ${d.criterios_rubrica.nombre}: <strong>${d.puntaje}</strong> / ${d.criterios_rubrica.puntaje_maximo} pts</div>`;
-                            }
-                        });
-                    }
+                divIndividual.innerHTML = `
+                    <div style="background: rgba(19, 34, 71, 0.9); border: 1px solid #1e3a75; padding: 12px; border-radius: 8px; color: #fff;">
+                        <strong style="color: #60a5fa;">${usuarioLogueado.nombre} ${usuarioLogueado.apellido} (Tú)</strong>
+                        <div style="margin-top: 8px; font-size: 0.9rem;">
+                            ${detallePuntaje}
+                        </div>
+                        <div style="margin-top: 8px; text-align: right; font-weight: bold; color: #38bdf8; font-size: 1rem; border-top: 1px solid #1e3a75; padding-top: 6px;">
+                            Total Individual: ${totalInd} pts
+                        </div>
+                    </div>
+                `;
+            }
 
-                    divGrupal.innerHTML += `
-                        <div style="background: rgba(19, 34, 71, 0.9); border: 1px solid #1e3a75; padding: 12px; border-radius: 8px; margin-bottom: 10px; color: #fff;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                                <strong style="color: #60a5fa;">Evaluación de Jurado</strong>
-                                <span style="font-size: 0.8rem; background: rgba(16,185,129,0.2); color: #34d399; padding: 2px 6px; border-radius: 4px;">${ev.estado || 'Evaluado'}</span>
-                            </div>
-                            <div style="font-size: 0.9rem;">${htmlCriterios || 'No hay criterios evaluados todavía.'}</div>
-                            <div style="margin-top: 8px; text-align: right; font-weight: bold; color: #38bdf8; font-size: 1rem; border-top: 1px solid #1e3a75; padding-top: 6px;">
-                                Total Grupal: ${sumaTotalGrupal} pts
-                            </div>
-                        </div>
-                    `;
-                }
-            }
-        } catch (error) {
-            console.error("Error al cargar calificaciones del alumno:", error);
-            divGrupal.innerHTML = '<p style="color: #f87171;">Ocurrió un error al cargar las notas.</p>';
-        }
-    }
+            const { data: evaluaciones, error: errEval } = await db
+                .from('evaluaciones')
+                .select('id_evaluacion, estado, id_jurado')
+                .eq('id_grupo', idGrupo);
 
-    window.onload = cargarDatosAlumno;
+            if (errEval) throw errEval;
+
+            if (!evaluaciones || evaluaciones.length === 0) {
+                divGrupal.innerHTML = '<p style="color: #94a3b8;">Tu equipo aún no ha recibido calificaciones grupales de los jurados.</p>';
+                lblPromedioFinal.textContent = "0.00 / 100";
+            } else {
+                divGrupal.innerHTML = '';
+                let sumaTotalGeneralGrupales = 0;
+                let cantidadJuradosCerrados = 0;
+
+                for (let ev of evaluaciones) {
+                    // Obtener nombre del jurado
+                    let nombreJurado = "Evaluación de Jurado";
+                    if (ev.id_jurado) {
+                        const { data: juradoData } = await db
+                            .from('usuarios')
+                            .select('nombre, apellido')
+                            .eq('id_usuario', ev.id_jurado)
+                            .maybeSingle();
+                        if (juradoData) {
+                            nombreJurado = `Jurado: ${juradoData.nombre} ${juradoData.apellido}`;
+                        }
+                    }
+
+                    const { data: detalles } = await db
+                        .from('evaluacion_detalle')
+                        .select('puntaje, criterios_rubrica(nombre, puntaje_maximo)')
+                        .eq('id_evaluacion', ev.id_evaluacion);
+
+                    let htmlCriterios = '';
+                    let sumaTotalGrupal = 0;
+                    if (detalles) {
+                        detalles.forEach(d => {
+                            if (d.criterios_rubrica) {
+                                sumaTotalGrupal += Number(d.puntaje);
+                                htmlCriterios += `<div style="margin: 4px 0;">• ${d.criterios_rubrica.nombre}: <strong>${d.puntaje}</strong> / ${d.criterios_rubrica.puntaje_maximo} pts</div>`;
+                            }
+                        });
+                    }
+
+                    if (ev.estado === 'cerrado') {
+                        sumaTotalGeneralGrupales += sumaTotalGrupal;
+                        cantidadJuradosCerrados++;
+                    }
+
+                    divGrupal.innerHTML += `
+                        <div style="background: rgba(19, 34, 71, 0.9); border: 1px solid #1e3a75; padding: 12px; border-radius: 8px; margin-bottom: 10px; color: #fff;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                <strong style="color: #60a5fa;">${nombreJurado}</strong>
+                                <span style="font-size: 0.8rem; background: rgba(16,185,129,0.2); color: #34d399; padding: 2px 6px; border-radius: 4px;">${ev.estado || 'Evaluado'}</span>
+                            </div>
+                            <div style="font-size: 0.9rem;">${htmlCriterios || 'No hay criterios evaluados todavía.'}</div>
+                            <div style="margin-top: 8px; text-align: right; font-weight: bold; color: #38bdf8; font-size: 1rem; border-top: 1px solid #1e3a75; padding-top: 6px;">
+                                Total Grupal: ${sumaTotalGrupal} pts
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Calcular promedio general grupal entre los jurados cerrados
+                if (cantidadJuradosCerrados > 0) {
+                    const promedioFinal = sumaTotalGeneralGrupales / cantidadJuradosCerrados;
+                    lblPromedioFinal.textContent = `${promedioFinal.toFixed(2)} / 100`;
+                } else {
+                    lblPromedioFinal.textContent = "Pendiente de cierre";
+                }
+            }
+        } catch (error) {
+            console.error("Error al cargar calificaciones del alumno:", error);
+            divGrupal.innerHTML = '<p style="color: #f87171;">Ocurrió un error al cargar las notas.</p>';
+        }
+    }
+
+    window.onload = async () => {
+        await cargarFiltroCompetencias();
+        await cargarDatosAlumno();
+    };
 </script>
 
 </body>
