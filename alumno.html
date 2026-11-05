@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="css/notas.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Ajustes adicionales para garantizar correspondencia visual con la interfaz */
         .card-evaluacion {
             background: #ffffff;
             border: 1px solid #cbd5e1;
@@ -20,7 +19,7 @@
         .tag-estado {
             font-size: 0.78rem;
             background: #dcfce7;
-            color: #15803d;
+            color: #16a34a;
             font-weight: 700;
             padding: 3px 8px;
             border-radius: 6px;
@@ -45,7 +44,6 @@
             <h1>Evaluación personal y grupal</h1>
             <h4 id="nombre-grupo">Actividad: Cargando equipo...</h4>
         </div>
-        <!-- Botón para ver ranking directo del alumno -->
         <button onclick="irARankings()" style="background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.85rem; box-shadow: 0 2px 5px rgba(0,0,0,0.15);">Ver Rankings</button>
     </div>
 
@@ -59,7 +57,6 @@
         <p style="color: #64748b;">Buscando calificaciones grupales de los jurados...</p>
     </div>
 
-    <!-- SECCIÓN DE PROMEDIO FINAL -->
     <h3 style="color: #1e3a8a; margin-top: 25px;">Resumen y Promedio Final</h3>
     <div id="promedio-final">
         <p style="color: #64748b;">Calculando resultado final...</p>
@@ -98,10 +95,10 @@
         const divPromedio = document.getElementById('promedio-final');
         const h4Grupo = document.getElementById('nombre-grupo');
 
-        let totalPuntajeIndividual = 0;
         let listaTotalesGrupales = [];
 
         try {
+            // Obtener el grupo del alumno
             const { data: relGrupo, error: errRel } = await db
                 .from('grupo_integrantes')
                 .select('id_grupo, grupos(nombre, id_competencia)')
@@ -126,7 +123,7 @@
 
             h4Grupo.textContent = `Actividad: Evaluaciones para el equipo "${nombreGrupo}"`;
 
-            // 1. OBTENER PUNTAJE INDIVIDUAL
+            // 1. CARGAR NOTA INDIVIDUAL
             const { data: notaInd } = await db
                 .from('defensa_individual')
                 .select('*')
@@ -141,39 +138,21 @@
                     </div>
                 `;
             } else {
-                let detallePuntaje = '';
-                totalPuntajeIndividual = notaInd.total || notaInd.puntaje || notaInd.nota || 0;
-
-                if (notaInd.nivel_1 !== undefined || notaInd.n1 !== undefined) {
-                    const n1 = notaInd.nivel_1 || notaInd.n1 || 0;
-                    const n2 = notaInd.nivel_2 || notaInd.n2 || 0;
-                    const n3 = notaInd.nivel_3 || notaInd.n3 || 0;
-                    const vivo = notaInd.cambio_vivo || notaInd.vivo || 0;
-                    detallePuntaje = `
-                        <div>• Nivel 1: <strong>${n1}</strong> / 5 pts</div>
-                        <div>• Nivel 2: <strong>${n2}</strong> / 5 pts</div>
-                        <div>• Nivel 3: <strong>${n3}</strong> / 5 pts</div>
-                        <div>• Cambio en vivo / Pizarra: <strong>${vivo}</strong> / 10 pts</div>
-                    `;
-                }
-
+                const totalInd = notaInd.puntaje || notaInd.total || notaInd.nota || 0;
                 divIndividual.innerHTML = `
                     <div class="card-evaluacion">
                         <strong style="color: #1e3a8a;">${usuarioLogueado.nombre} ${usuarioLogueado.apellido} (Tú)</strong>
-                        <div style="margin-top: 8px; font-size: 0.9rem; color: #334155;">
-                            ${detallePuntaje}
-                        </div>
                         <div class="total-puntos">
-                            Total Individual: ${totalPuntajeIndividual} pts
+                            Puntaje Individual: ${totalInd} pts
                         </div>
                     </div>
                 `;
             }
 
-            // 2. OBTENER EVALUACIONES GRUPALES
+            // 2. CARGAR EVALUACIONES GRUPALES (CON NOMBRE DEL JURADO)
             const { data: evaluaciones, error: errEval } = await db
                 .from('evaluaciones')
-                .select('id_evaluacion, estado')
+                .select('id_evaluacion, estado, comentario_general, usuarios:id_jurado (nombre, apellido)')
                 .eq('id_grupo', idGrupo);
 
             if (errEval) throw errEval;
@@ -201,13 +180,16 @@
 
                     listaTotalesGrupales.push(sumaTotalGrupal);
 
+                    const nombreJurado = ev.usuarios ? `${ev.usuarios.nombre} ${ev.usuarios.apellido}` : 'Jurado';
+
                     divGrupal.innerHTML += `
                         <div class="card-evaluacion">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <strong style="color: #1e3a8a;">Evaluación de Jurado</strong>
+                                <strong style="color: #1e3a8a;">Evaluación de: ${nombreJurado}</strong>
                                 <span class="tag-estado">${ev.estado || 'cerrado'}</span>
                             </div>
                             <div style="font-size: 0.9rem; color: #334155;">${htmlCriterios || 'No hay criterios evaluados todavía.'}</div>
+                            ${ev.comentario_general ? `<p style="margin-top: 8px; font-style: italic; color: #475569; font-size: 0.85rem;">" ${ev.comentario_general} "</p>` : ''}
                             <div class="total-puntos">
                                 Total Grupal: ${sumaTotalGrupal} pts
                             </div>
@@ -216,32 +198,29 @@
                 }
             }
 
-            // 3. CALCULAR Y MOSTRAR PROMEDIO FINAL
-            let promedioGrupal = 0;
+            // 3. PROMEDIO EXCLUSIVO DEL PUNTAJE GRUPAL
             if (listaTotalesGrupales.length > 0) {
                 const sumaGrupales = listaTotalesGrupales.reduce((acc, curr) => acc + curr, 0);
-                promedioGrupal = sumaGrupales / listaTotalesGrupales.length;
+                const promedioGrupalFinal = (sumaGrupales / listaTotalesGrupales.length).toFixed(2);
+
+                divPromedio.innerHTML = `
+                    <div class="card-evaluacion" style="background: #ffffff; border: 2px solid #2563eb;">
+                        <div style="font-size: 0.95rem; color: #1e293b; margin-bottom: 6px;">
+                            • Total de Jurados que evaluaron: <strong style="color: #1e3a8a;">${listaTotalesGrupales.length}</strong>
+                        </div>
+                        <div style="text-align: right; border-top: 1px dashed #cbd5e1; padding-top: 10px;">
+                            <span style="font-size: 1.05rem; color: #1e3a8a; font-weight: 700;">Promedio Grupal Final: </span>
+                            <span style="font-size: 1.4rem; color: #2563eb; font-weight: 800;">${promedioGrupalFinal} pts</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                divPromedio.innerHTML = '<p style="color: #64748b;">No hay evaluaciones suficientes para calcular el promedio final.</p>';
             }
 
-            const puntajeFinalTotal = (promedioGrupal + totalPuntajeIndividual).toFixed(2);
-
-            divPromedio.innerHTML = `
-                <div class="card-evaluacion" style="background: #f0f9ff; border: 2px solid #3b82f6;">
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; font-size: 0.95rem; color: #1e293b; margin-bottom: 12px;">
-                        <div>• Promedio Grupal (${listaTotalesGrupales.length} jurados): <strong style="color: #1e3a8a;">${promedioGrupal.toFixed(2)} pts</strong></div>
-                        <div>• Puntaje Individual: <strong style="color: #1e3a8a;">${totalPuntajeIndividual} pts</strong></div>
-                    </div>
-                    <div style="text-align: right; border-top: 2px dashed #93c5fd; padding-top: 10px;">
-                        <span style="font-size: 1.1rem; color: #1e3a8a; font-weight: 700;">Promedio Final Total: </span>
-                        <span style="font-size: 1.5rem; color: #2563eb; font-weight: 800;">${puntajeFinalTotal} pts</span>
-                    </div>
-                </div>
-            `;
-
         } catch (error) {
-            console.error("Error al cargar calificaciones del alumno:", error);
+            console.error("Error al cargar datos:", error);
             divGrupal.innerHTML = '<p style="color: #dc2626;">Ocurrió un error al cargar las notas.</p>';
-            divPromedio.innerHTML = '<p style="color: #dc2626;">No se pudo calcular el promedio final.</p>';
         }
     }
 
