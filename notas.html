@@ -100,7 +100,7 @@
       background-color: #e0f2fe;
       padding: 16px 22px;
       border-radius: 12px;
-      margin-bottom: 22px;
+      margin-bottom: 15px;
       border: 1px solid var(--border-color);
     }
 
@@ -203,14 +203,23 @@
 <div class="container-notas">
   <div class="toolbar">
     <a href="jurado.html" class="btn-volver">← Volver al Panel de Jurado</a>
-    <button onclick="window.print()" class="btn-print">🖨️ Imprimir / Exportar a PDF</button>
+    <button onclick="exportarPDF()" class="btn-print">🖨️ Imprimir / Exportar a PDF</button>
   </div>
 
   <div class="header-notas">
     <h1>Notas Cargadas por Año y Curso</h1>
-    <p>Consulte las calificaciones y puntajes registrados en la base de datos</p>
+    <p id="subtitulo-competencia">Consulte las calificaciones y puntajes registrados en la base de datos</p>
   </div>
 
+  <!-- Selector de Competencia -->
+  <div class="selector-container" id="contenedor-select-competencia">
+    <label for="select-competencia">Seleccionar Competencia:</label>
+    <select id="select-competencia" onchange="cambiarCompetencia()">
+      <option value="">-- Cargando competencias --</option>
+    </select>
+  </div>
+
+  <!-- Selector de Curso -->
   <div class="selector-container">
     <label for="select-curso">Seleccionar Año / Curso:</label>
     <select id="select-curso" onchange="filtrarNotas()">
@@ -261,56 +270,108 @@
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   let notasCache = [];
+  let idCompetenciaActiva = usuarioLogueado.id_competencia || null;
+  let nombreCompetenciaActiva = "";
 
-  async function cargarNotas() {
+  async function inicializarNotas() {
+    await cargarListaCompetencias();
+    if (idCompetenciaActiva) {
+      document.getElementById('select-competencia').value = idCompetenciaActiva;
+      await actualizarNombreCompetencia(idCompetenciaActiva);
+      cargarNotas(idCompetenciaActiva);
+    }
+  }
+
+  async function cargarListaCompetencias() {
+    const { data: comps, error } = await db.from('competencias').select('*').order('id_competencia', { ascending: false });
+    const select = document.getElementById('select-competencia');
+    select.innerHTML = '<option value="">-- Seleccione una competencia --</option>';
+    if (comps && comps.length > 0) {
+      comps.forEach(c => {
+        select.innerHTML += `<option value="${c.id_competencia}">${c.nombre}</option>`;
+      });
+      if (!idCompetenciaActiva) {
+        idCompetenciaActiva = comps[0].id_competencia;
+        select.value = idCompetenciaActiva;
+        actualizarNombreCompetencia(idCompetenciaActiva);
+        cargarNotas(idCompetenciaActiva);
+      }
+    }
+  }
+
+  async function cambiarCompetencia() {
+    const select = document.getElementById('select-competencia');
+    idCompetenciaActiva = select.value;
+    if (idCompetenciaActiva) {
+      await actualizarNombreCompetencia(idCompetenciaActiva);
+      cargarNotas(idCompetenciaActiva);
+    } else {
+      document.getElementById('tabla-notas-body').innerHTML = `<tr><td colspan="9">Seleccione una competencia para ver las notas.</td></tr>`;
+      document.getElementById('subtitulo-competencia').textContent = '';
+    }
+  }
+
+  async function actualizarNombreCompetencia(idComp) {
+    const { data } = await db.from('competencias').select('nombre').eq('id_competencia', idComp).maybeSingle();
+    if (data) {
+      nombreCompetenciaActiva = data.nombre;
+      document.getElementById('subtitulo-competencia').textContent = `Competencia: ${nombreCompetenciaActiva} — Calificaciones y puntajes registrados`;
+    }
+  }
+
+  async function cargarNotas(idComp) {
+    const tbody = document.getElementById('tabla-notas-body');
+    tbody.innerHTML = `<tr><td colspan="9">Cargando datos desde Supabase...</td></tr>`;
+
     try {
-      // 1. Consultar evaluaciones en estado 'cerrado'
+      // 1. Buscar grupos de esta competencia
+      const { data: gruposComp, error: errGruposComp } = await db
+        .from('grupos')
+        .select('id_grupo, nombre, id_curso')
+        .eq('id_competencia', parseInt(idComp));
+
+      if (errGruposComp) throw errGruposComp;
+
+      if (!gruposComp || gruposComp.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9">No hay grupos registrados en esta competencia.</td></tr>`;
+        notasCache = [];
+        return;
+      }
+
+      const idsGrupos = gruposComp.map(g => g.id_grupo);
+      const gruposMap = {};
+      gruposComp.forEach(g => {
+        gruposMap[g.id_grupo] = {
+          id_grupo: g.id_grupo,
+          nombre_grupo: g.nombre,
+          curso: g.id_curso || '-',
+          juradosCount: 0,
+          criterios: [0, 0, 0, 0, 0],
+          total: 0
+        };
+      });
+
+      // 2. Consultar evaluaciones cerradas para estos grupos
       const { data: evalData, error: evalErr } = await db
         .from('evaluaciones')
-        .select(`
-          id_evaluacion,
-          id_grupo,
-          estado
-        `)
+        .select('id_evaluacion, id_grupo, estado')
+        .in('id_grupo', idsGrupos)
         .eq('estado', 'cerrado');
 
       if (evalErr) throw evalErr;
 
       if (!evalData || evalData.length === 0) {
-        document.getElementById('tabla-notas-body').innerHTML = `<tr><td colspan="9">No hay notas registradas o cerradas todavía.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9">No hay notas cerradas registradas para esta competencia todavía.</td></tr>`;
+        notasCache = [];
         return;
       }
 
-      const gruposMap = {};
-
-      // 2. Recorrer cada evaluación cerrada para buscar su grupo y sus detalles por separado de forma segura
       for (let e of evalData) {
         const idG = e.id_grupo;
-        if (!idG) continue;
-
-        // Obtener datos del grupo
-        const { data: grupoData } = await db
-          .from('grupos')
-          .select('id_grupo, nombre, id_curso')
-          .eq('id_grupo', idG)
-          .maybeSingle();
-
-        if (!grupoData) continue;
-
-        if (!gruposMap[idG]) {
-          gruposMap[idG] = {
-            id_grupo: idG,
-            nombre_grupo: grupoData.nombre,
-            curso: grupoData.id_curso || '-',
-            juradosCount: 0,
-            criterios: [0, 0, 0, 0, 0],
-            total: 0
-          };
-        }
+        if (!gruposMap[idG]) continue;
 
         gruposMap[idG].juradosCount += 1;
 
-        // Obtener detalles de evaluación
         const { data: detalles } = await db
           .from('evaluacion_detalle')
           .select('puntaje')
@@ -326,12 +387,10 @@
             }
           });
         }
-
         gruposMap[idG].total += totalEvaluacion;
       }
 
-      // 3. Promediar si hay varios jurados y armar el caché
-      notasCache = Object.values(gruposMap).map(g => {
+      notasCache = Object.values(gruposMap).filter(g => g.juradosCount > 0).map(g => {
         const cant = g.juradosCount || 1;
         return {
           id_grupo: g.id_grupo,
@@ -349,8 +408,7 @@
       filtrarNotas();
     } catch (err) {
       console.error('Error al cargar notas:', err);
-      document.getElementById('tabla-notas-body').innerHTML = 
-        `<tr><td colspan="9" style="color:red;">Error al consultar las calificaciones en la base de datos</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9" style="color:red;">Error al consultar las calificaciones en la base de datos</td></tr>`;
     }
   }
 
@@ -373,7 +431,7 @@
     tbody.innerHTML = '';
 
     if (filtrados.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="9">No hay notas registradas para este curso.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9">No hay notas registradas para este curso o filtro.</td></tr>`;
       return;
     }
 
@@ -394,7 +452,23 @@
     });
   }
 
-  cargarNotas();
+  function exportarPDF() {
+    const anioActual = new Date().getFullYear();
+    const nombreComp = nombreCompetenciaActiva ? nombreCompetenciaActiva.trim() : "General";
+    
+    // Cambiar dinámicamente el título de la página para que el navegador asigne ese nombre al PDF al imprimir
+    const tituloOriginal = document.title;
+    document.title = `Notas Cargadas ${anioActual}-${nombreComp}`;
+    
+    window.print();
+
+    // Restaurar el título original tras un momento
+    setTimeout(() => {
+      document.title = tituloOriginal;
+    }, 1000);
+  }
+
+  window.onload = inicializarNotas;
 </script>
 
 </body>
