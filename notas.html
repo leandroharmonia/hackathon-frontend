@@ -1,3 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notas Cargadas por Curso - Hackathon 2026</title>
+  <link rel="stylesheet" href="css/estilos.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary-color: #1877f2;
+      --secondary-color: #1e3a8a;
+      --bg-surface: rgba(255, 255, 255, 0.96);
+      --text-main: #0f172a;
+      --border-color: #bae6fd;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f0f4f8;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(30, 64, 175, 0.05) 0%, transparent 40%),
+        url('img/Grupos.jpg');
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-attachment: fixed;
+      background-size: cover;
+      color: var(--text-main);
+      margin: 0;
+      padding: 30px 20px;
+      min-height: 100vh;
+    }
+
+    .container-notas {
+      max-width: 1100px;
+      margin: 0 auto;
+      background-color: var(--bg-surface);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      border: 1px solid var(--border-color);
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .btn-volver {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .btn-print {
+      background-color: var(--primary-color);
+      color: #ffffff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.9rem;
+      box-shadow: 0 2px 8px rgba(24, 119, 242, 0.3);
+      transition: all 0.2s ease;
+    }
+
+    .btn-print:hover {
+      background-color: var(--secondary-color);
+      transform: translateY(-1px);
+    }
+
+    .header-notas {
+      border-bottom: 2px solid var(--primary-color);
+      padding-bottom: 12px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .header-notas h1 {
+      margin: 0;
+      color: var(--secondary-color);
+      font-size: 2rem;
+      font-weight: 800;
+    }
+
+    .header-notas p {
+      margin: 6px 0 0 0;
+      color: #475569;
+    }
+
+    .selector-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #e0f2fe;
+      padding: 16px 22px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      border: 1px solid var(--border-color);
+    }
+
+    .selector-container label {
+      font-weight: 700;
+      color: var(--secondary-color);
+      font-size: 1rem;
+    }
+
+    .selector-container select {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid #94a3b8;
+      font-size: 0.95rem;
+      background-color: #ffffff;
+      outline: none;
+      cursor: pointer;
+      color: var(--text-main);
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+    }
+
+    .tabla-notas {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      text-align: center;
+      background-color: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .tabla-notas th, .tabla-notas td {
+      border: 1px solid #cbd5e1;
+      padding: 12px 14px;
+    }
+
+    .tabla-notas th {
+      background-color: #f1f5f9;
+      color: var(--secondary-color);
+      font-weight: 700;
+    }
+
+    .tabla-notas th span {
+      display: block;
+      font-size: 0.75rem;
+      color: #64748b;
+      font-weight: normal;
+    }
+
+    .tabla-notas tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    @media print {
+      body {
+        background: #ffffff !important;
+        padding: 0;
+        color: #000000;
+      }
+
+      .container-notas {
+        box-shadow: none;
+        border: none;
+        padding: 0;
+        max-width: 100%;
+        background-color: #ffffff;
+      }
+
+      .toolbar, .selector-container {
+        display: none !important;
+      }
+
+      .header-notas {
+        border-bottom: 2px solid #000;
+      }
+
+      .header-notas h1 {
+        color: #000;
+        font-size: 1.6rem;
+      }
+
+      .tabla-notas th {
+        background-color: #e2e8f0 !important;
+        color: #000 !important;
+      }
+
+      .tabla-notas th, .tabla-notas td {
+        border: 1px solid #64748b !important;
+        padding: 6px 8px;
+        font-size: 0.85rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container-notas">
+  <div class="toolbar">
+    <a href="jurado.html" class="btn-volver">← Volver al Panel de Jurado</a>
+    <button onclick="exportarPDF()" class="btn-print">🖨️ Imprimir / Exportar a PDF</button>
+  </div>
+
+  <div class="header-notas">
+    <h1>Notas Cargadas por Año y Curso</h1>
+    <p id="subtitulo-competencia">Consulte las calificaciones y puntajes registrados en la base de datos</p>
+  </div>
+
+  <!-- Selector de Competencia -->
+  <div class="selector-container" id="contenedor-select-competencia">
+    <label for="select-competencia">Seleccionar Competencia:</label>
+    <select id="select-competencia" onchange="cambiarCompetencia()">
+      <option value="">-- Cargando competencias --</option>
+    </select>
+  </div>
+
+  <!-- Selector de Curso -->
+  <div class="selector-container">
+    <label for="select-curso">Seleccionar Año / Curso:</label>
+    <select id="select-curso" onchange="filtrarNotas()">
+      <option value="todos">Todos los Cursos</option>
+      <option value="7">7mo Año</option>
+      <option value="6">6to Año</option>
+      <option value="5">5to Año</option>
+      <option value="4">4to Año</option>
+      <option value="3">3ro Año</option>
+      <option value="2">2do Año</option>
+      <option value="1">1ro Año</option>
+    </select>
+  </div>
+
+  <div class="table-responsive">
+    <table class="tabla-notas">
+      <thead>
+        <tr>
+          <th>Puesto</th>
+          <th style="text-align: left;">Grupo</th>
+          <th>Curso</th>
+          <th>Criterio 1</th>
+          <th>Criterio 2</th>
+          <th>Criterio 3</th>
+          <th>Criterio 4</th>
+          <th>Criterio 5</th>
+          <th>Total <span>(de 100)</span></th>
+        </tr>
+      </thead>
+      <tbody id="tabla-notas-body">
+        <tr>
+          <td colspan="9">Cargando datos desde Supabase...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
 <script>
   const usuarioLogueado = JSON.parse(sessionStorage.getItem("usuario") || "{}");
   if (!usuarioLogueado || usuarioLogueado.rol !== "jurado") {
@@ -18,24 +278,27 @@
   }
 
   async function cargarListaCompetencias() {
-    const { data: comps, error } = await db.from('competencias').select('*').order('id_competencia', { ascending: false });
-    const select = document.getElementById('select-competencia');
-    select.innerHTML = '';
-    
-    if (comps && comps.length > 0) {
-      comps.forEach(c => {
-        select.innerHTML += `<option value="${c.id_competencia}">${c.nombre}</option>`;
-      });
-
-      // Si el usuario logueado tiene una competencia válida, la seleccionamos; si no, la primera de la lista
-      if (!idCompetenciaActiva || !comps.some(c => c.id_competencia == idCompetenciaActiva)) {
-        idCompetenciaActiva = comps[0].id_competencia;
-      }
+    try {
+      const { data: comps, error } = await db.from('competencias').select('*').order('id_competencia', { ascending: false });
+      const select = document.getElementById('select-competencia');
+      select.innerHTML = '';
       
-      select.value = idCompetenciaActiva;
-      await cambiarCompetencia();
-    } else {
-      select.innerHTML = '<option value="">No hay competencias disponibles</option>';
+      if (comps && comps.length > 0) {
+        comps.forEach(c => {
+          select.innerHTML += `<option value="${c.id_competencia}">${c.nombre}</option>`;
+        });
+
+        if (!idCompetenciaActiva || !comps.some(c => c.id_competencia == idCompetenciaActiva)) {
+          idCompetenciaActiva = comps[0].id_competencia;
+        }
+        
+        select.value = idCompetenciaActiva;
+        await cambiarCompetencia();
+      } else {
+        select.innerHTML = '<option value="">No hay competencias disponibles</option>';
+      }
+    } catch (err) {
+      console.error("Error al cargar competencias:", err);
     }
   }
 
@@ -50,13 +313,11 @@
       return;
     }
 
-    // Obtener el nombre exacto de la opción seleccionada en el select de forma inmediata
     const optionSelected = select.options[select.selectedIndex];
     nombreCompetenciaActiva = optionSelected ? optionSelected.text : "Competencia";
 
     document.getElementById('subtitulo-competencia').textContent = `Competencia: ${nombreCompetenciaActiva} — Calificaciones y puntajes registrados`;
 
-    // Cargar los datos de los grupos y notas correspondientes a esta competencia
     await cargarNotas(idCompetenciaActiva);
   }
 
@@ -65,7 +326,6 @@
     tbody.innerHTML = `<tr><td colspan="9">Cargando datos desde Supabase...</td></tr>`;
 
     try {
-      // 1. Buscar grupos vinculados a esta competencia
       const { data: gruposComp, error: errGruposComp } = await db
         .from('grupos')
         .select('id_grupo, nombre, id_curso')
@@ -92,7 +352,6 @@
         };
       });
 
-      // 2. Buscar evaluaciones cerradas para estos grupos
       const { data: evalData, error: evalErr } = await db
         .from('evaluaciones')
         .select('id_evaluacion, id_grupo, estado')
@@ -198,7 +457,6 @@
     const nombreComp = nombreCompetenciaActiva ? nombreCompetenciaActiva.trim() : "Competencia";
     
     const tituloOriginal = document.title;
-    // Esto asegura que el nombre del PDF sea exactamente: Notas Cargadas [Año]-[Nombre de la Competencia]
     document.title = `Notas Cargadas ${anioActual}-${nombreComp}`;
     
     window.print();
@@ -210,3 +468,6 @@
 
   window.onload = inicializarNotas;
 </script>
+
+</body>
+</html>
