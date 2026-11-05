@@ -6,37 +6,171 @@
     <title>Orden de Mérito - Rankings</title>
     <link rel="stylesheet" href="rankings.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+      body {
+        background-color: #f0f4f8;
+        background-image: 
+          radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.05) 0%, transparent 40%),
+          radial-gradient(circle at 90% 80%, rgba(30, 64, 175, 0.05) 0%, transparent 40%),
+          url('img/Grupos.jpg');
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-attachment: fixed;
+        background-size: cover;
+        font-family: system-ui, -apple-system, sans-serif;
+        margin: 0;
+        padding: 30px 20px;
+        min-height: 100vh;
+      }
+
+      .contenedor-principal {
+        max-width: 900px;
+        margin: auto;
+        background: rgba(255, 255, 255, 0.96);
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        border: 1px solid #bae6fd;
+        color: #0f172a;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #bae6fd;
+        padding-bottom: 15px;
+      }
+
+      h2 {
+        color: #1e3a8a;
+        margin: 0;
+        font-weight: 800;
+      }
+
+      .btn-volver {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 0.85rem;
+        transition: background 0.2s;
+      }
+
+      .btn-volver:hover {
+        background: #1d4ed8;
+      }
+
+      .selector-curso-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #e0f2fe;
+        padding: 14px 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        border: 1px solid #bae6fd;
+      }
+
+      .selector-curso-container label {
+        font-weight: 700;
+        color: #1e3a8a;
+      }
+
+      .selector-curso-container select {
+        padding: 8px 14px;
+        border-radius: 8px;
+        border: 1px solid #94a3b8;
+        background-color: #ffffff;
+        color: #0f172a;
+        font-weight: 600;
+        outline: none;
+        cursor: pointer;
+      }
+
+      .tabla-wrapper {
+        background: #ffffff;
+        border-radius: 12px;
+        border: 1px solid #cbd5e1;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+      }
+
+      th {
+        background-color: #f1f5f9;
+        color: #1e3a8a;
+        padding: 14px;
+        font-weight: 700;
+        border-bottom: 2px solid #cbd5e1;
+      }
+
+      td {
+        padding: 12px 14px;
+        border-bottom: 1px solid #e2e8f0;
+        color: #1e293b;
+      }
+
+      tr:nth-child(even) {
+        background-color: #f8fafc;
+      }
+    </style>
 </head>
 <body>
 
-<div class="contenedor-principal" style="padding: 20px; color: #fff; max-width: 800px; margin: auto;">
-    <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+<div class="contenedor-principal">
+    <header>
         <div>
-            <h2 id="titulo-ranking" style="margin: 0;">Orden de Mérito / Rankings</h2>
-            <p id="subtitulo-competencia" style="margin: 5px 0 0 0; font-size: 0.9rem; color: #93c5fd;"></p>
+            <h2 id="titulo-ranking">Orden de Mérito / Rankings</h2>
+            <p id="subtitulo-competencia" style="margin: 5px 0 0 0; font-size: 0.9rem; color: #475569; font-weight: 600;"></p>
         </div>
-        <button onclick="volverAlPanel()" style="background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">Volver al Panel</button>
+        <button class="btn-volver" onclick="volverAlPanel()">← Volver al Panel</button>
     </header>
 
     <!-- Selector opcional por si ingresa directo sin sesión -->
-    <div id="selector-competencia-container" style="display: none; background: rgba(19, 34, 71, 0.9); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-        <label for="select-competencia-externa" style="display: block; margin-bottom: 8px; font-weight: bold;">Seleccione la Competencia a Visualizar:</label>
-        <select id="select-competencia-externa" onchange="cambiarCompetenciaExterna()" style="width: 100%; padding: 10px; border-radius: 6px; background: #f1f5f9; color: #0f172a; border: 1px solid #94a3b8;">
+    <div id="selector-competencia-container" style="display: none; background: #ffffff; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #bae6fd;">
+        <label for="select-competencia-externa" style="display: block; margin-bottom: 8px; font-weight: bold; color: #1e3a8a;">Seleccione la Competencia a Visualizar:</label>
+        <select id="select-competencia-externa" onchange="cambiarCompetenciaExterna()" style="width: 100%; padding: 10px; border-radius: 8px; background: #f8fafc; color: #0f172a; border: 1px solid #94a3b8;">
             <option value="">-- Seleccione una competencia --</option>
         </select>
     </div>
 
-    <div style="background: rgba(19, 34, 71, 0.9); padding: 20px; border-radius: 8px;">
-        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+    <!-- Selector de Filtro por Año / Curso -->
+    <div class="selector-curso-container">
+        <label for="select-filtro-curso">Filtrar por Año / Curso:</label>
+        <select id="select-filtro-curso" onchange="renderizarTablaRanking()">
+            <option value="todos">Todos los Cursos</option>
+            <option value="7">7mo Año</option>
+            <option value="6">6to Año</option>
+            <option value="5">5to Año</option>
+            <option value="4">4to Año</option>
+            <option value="3">3er Año</option>
+            <option value="2">2do Año</option>
+            <option value="1">1er Año</option>
+        </select>
+    </div>
+
+    <div class="tabla-wrapper">
+        <table>
             <thead>
-                <tr style="border-bottom: 2px solid #3b82f6;">
-                    <th style="padding: 8px;">Posición</th>
-                    <th style="padding: 8px;">Equipo</th>
-                    <th style="padding: 8px; text-align: right;">Puntaje Total (Terminado)</th>
+                <tr>
+                    <th style="width: 15%;">Posición</th>
+                    <th style="width: 50%;">Equipo</th>
+                    <th style="width: 15%;">Curso</th>
+                    <th style="width: 20%; text-align: right;">Puntaje Total</th>
                 </tr>
             </thead>
             <tbody id="tabla-ranking">
-                <tr><td colspan="3" style="padding: 10px; text-align: center;">Cargando rankings...</td></tr>
+                <tr><td colspan="4" style="padding: 20px; text-align: center; color: #64748b;">Cargando rankings...</td></tr>
             </tbody>
         </table>
     </div>
@@ -48,6 +182,7 @@
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let idCompetenciaActiva = null;
+    let rankingCache = [];
     const usuarioLogueado = JSON.parse(sessionStorage.getItem("usuario") || "null");
 
     function volverAlPanel() {
@@ -93,8 +228,9 @@
             cargarNombreCompetencia(idCompetenciaActiva);
             cargarRankings(idCompetenciaActiva);
         } else {
-            document.getElementById('tabla-ranking').innerHTML = '<tr><td colspan="3" style="padding: 10px; text-align: center;">Seleccione una competencia para ver el ranking.</td></tr>';
+            document.getElementById('tabla-ranking').innerHTML = '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #64748b;">Seleccione una competencia para ver el ranking.</td></tr>';
             document.getElementById('subtitulo-competencia').textContent = '';
+            rankingCache = [];
         }
     }
 
@@ -107,18 +243,19 @@
 
     async function cargarRankings(idComp) {
         const tbody = document.getElementById('tabla-ranking');
-        tbody.innerHTML = '<tr><td colspan="3" style="padding: 10px; text-align: center;">Calculando rankings...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #64748b;">Calculando rankings...</td></tr>';
 
         try {
             const { data: grupos, error: errGrupos } = await db
                 .from('grupos')
-                .select('id_grupo, nombre')
+                .select('id_grupo, nombre, id_curso')
                 .eq('id_competencia', parseInt(idComp));
 
             if (errGrupos) throw errGrupos;
 
             if (!grupos || grupos.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" style="padding: 10px; text-align: center;">No hay equipos registrados en esta competencia.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #64748b;">No hay equipos registrados en esta competencia.</td></tr>';
+                rankingCache = [];
                 return;
             }
 
@@ -150,32 +287,48 @@
 
                 rankingData.push({
                     nombre: grupo.nombre,
+                    curso: grupo.id_curso || '-',
                     puntaje: puntajeTotalGrupo
                 });
             }
 
+            // Ordenar de mayor a menor puntaje
             rankingData.sort((a, b) => b.puntaje - a.puntaje);
+            rankingCache = rankingData;
 
-            tbody.innerHTML = '';
-            if (rankingData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" style="padding: 10px; text-align: center;">No hay equipos evaluados de forma definitiva todavía en esta competencia.</td></tr>';
-                return;
-            }
-
-            rankingData.forEach((item, index) => {
-                tbody.innerHTML += `
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <td style="padding: 10px; font-weight: bold; color: #60a5fa;">#${index + 1}</td>
-                        <td style="padding: 10px;">${item.nombre}</td>
-                        <td style="padding: 10px; text-align: right; font-weight: bold; color: #34d399;">${item.puntaje} pts</td>
-                    </tr>
-                `;
-            });
+            renderizarTablaRanking();
 
         } catch (error) {
             console.error("Error al calcular rankings:", error);
-            tbody.innerHTML = '<tr><td colspan="3" style="padding: 10px; text-align: center; color: #f87171;">Error al cargar el orden de mérito.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #dc2626;">Error al cargar el orden de mérito.</td></tr>';
         }
+    }
+
+    function renderizarTablaRanking() {
+        const cursoFiltro = document.getElementById('select-filtro-curso').value;
+        const tbody = document.getElementById('tabla-ranking');
+
+        let filtrados = rankingCache.filter(item => {
+            if (cursoFiltro === 'todos') return true;
+            return String(item.curso) === cursoFiltro;
+        });
+
+        tbody.innerHTML = '';
+        if (filtrados.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #64748b;">No hay equipos registrados para este curso.</td></tr>';
+            return;
+        }
+
+        filtrados.forEach((item, index) => {
+            tbody.innerHTML += `
+                <tr>
+                    <td style="font-weight: 700; color: #2563eb;">#${index + 1}</td>
+                    <td style="font-weight: 600;">${item.nombre}</td>
+                    <td>${item.curso}° Año</td>
+                    <td style="text-align: right; font-weight: 700; color: #16a34a;">${item.puntaje} pts</td>
+                </tr>
+            `;
+        });
     }
 
     window.onload = inicializarRankings;
