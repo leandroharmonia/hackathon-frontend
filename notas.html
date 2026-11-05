@@ -10,14 +10,21 @@
     :root {
       --primary-color: #1877f2;
       --secondary-color: #1e3a8a;
-      --bg-surface: rgba(255, 255, 255, 0.95);
+      --bg-surface: rgba(255, 255, 255, 0.96);
       --text-main: #0f172a;
       --border-color: #bae6fd;
     }
 
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.65)), url('img/Grupos.jpg') no-repeat center center fixed;
+      background-color: #f0f4f8;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(30, 64, 175, 0.05) 0%, transparent 40%),
+        url('img/Grupos.jpg');
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-attachment: fixed;
       background-size: cover;
       color: var(--text-main);
       margin: 0;
@@ -31,7 +38,7 @@
       background-color: var(--bg-surface);
       border-radius: 16px;
       padding: 28px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
       border: 1px solid var(--border-color);
     }
 
@@ -225,11 +232,11 @@
           <th>Puesto</th>
           <th style="text-align: left;">Grupo</th>
           <th>Curso</th>
-          <th>Producto <span>(de 25)</span></th>
-          <th>Stand y Pitch <span>(de 15)</span></th>
-          <th>Base de Datos <span>(de 20)</span></th>
-          <th>Defensa <span>(de 25)</span></th>
-          <th>Carpeta y Reg. <span>(de 15)</span></th>
+          <th>Criterio 1</th>
+          <th>Criterio 2</th>
+          <th>Criterio 3</th>
+          <th>Criterio 4</th>
+          <th>Criterio 5</th>
           <th>Total <span>(de 100)</span></th>
         </tr>
       </thead>
@@ -250,87 +257,98 @@
   }
 
   const SUPABASE_URL = "https://lunpcumjmkbetdccsmuo.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3OiOiJzdXBhYmFzZSIsInJlZiI6Imx1bnBjdW1qbWtiZXRkY2NzbXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODc1MjcsImV4cCI6MjEwNzU2MzUyN30.MyP9ADhCM8LBP7jvtRs-rUX1n-MYShBMA5qtFRMH3Xc";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1bnBjdW1qbWtiZXRkY2NzbXVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5ODc1MjcsImV4cCI6MjEwNzU2MzUyN30.MyP9ADhCM8LBP7jvtRs-rUX1n-MYShBMA5qtFRMH3Xc";
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   let notasCache = [];
 
   async function cargarNotas() {
     try {
-      // 1. Consultar evaluaciones en estado 'cerrado' junto a sus detalles y la información del grupo
+      // 1. Consultar evaluaciones en estado 'cerrado'
       const { data: evalData, error: evalErr } = await db
         .from('evaluaciones')
         .select(`
           id_evaluacion,
           id_grupo,
-          id_jurado,
-          estado,
-          grupos ( id_grupo, nombre, id_curso ),
-          evaluacion_detalle ( id_criterio, puntaje )
+          estado
         `)
         .eq('estado', 'cerrado');
 
       if (evalErr) throw evalErr;
 
-      // 2. Agrupar las evaluaciones por id_grupo para promediar entre los jurados
+      if (!evalData || evalData.length === 0) {
+        document.getElementById('tabla-notas-body').innerHTML = `<tr><td colspan="9">No hay notas registradas o cerradas todavía.</td></tr>`;
+        return;
+      }
+
       const gruposMap = {};
 
-      (evalData || []).forEach(e => {
+      // 2. Recorrer cada evaluación cerrada para buscar su grupo y sus detalles por separado de forma segura
+      for (let e of evalData) {
         const idG = e.id_grupo;
-        if (!idG) return;
+        if (!idG) continue;
+
+        // Obtener datos del grupo
+        const { data: grupoData } = await db
+          .from('grupos')
+          .select('id_grupo, nombre, id_curso')
+          .eq('id_grupo', idG)
+          .maybeSingle();
+
+        if (!grupoData) continue;
 
         if (!gruposMap[idG]) {
           gruposMap[idG] = {
             id_grupo: idG,
-            nombre_grupo: e.grupos ? e.grupos.nombre : `Grupo ${idG}`,
-            curso: e.grupos ? e.grupos.id_curso : '-',
+            nombre_grupo: grupoData.nombre,
+            curso: grupoData.id_curso || '-',
             juradosCount: 0,
-            producto: 0,
-            stand_pitch: 0,
-            base_datos: 0,
-            defensa: 0,
-            carpeta_registro: 0,
+            criterios: [0, 0, 0, 0, 0],
             total: 0
           };
         }
 
         gruposMap[idG].juradosCount += 1;
-        const detalles = e.evaluacion_detalle || [];
+
+        // Obtener detalles de evaluación
+        const { data: detalles } = await db
+          .from('evaluacion_detalle')
+          .select('puntaje')
+          .eq('id_evaluacion', e.id_evaluacion);
+
         let totalEvaluacion = 0;
-
-        detalles.forEach((d, idx) => {
-          const pts = parseFloat(d.puntaje) || 0;
-          totalEvaluacion += pts;
-
-          if (idx === 0) gruposMap[idG].producto += pts;
-          else if (idx === 1) gruposMap[idG].stand_pitch += pts;
-          else if (idx === 2) gruposMap[idG].base_datos += pts;
-          else if (idx === 3) gruposMap[idG].defensa += pts;
-          else if (idx === 4) gruposMap[idG].carpeta_registro += pts;
-        });
+        if (detalles) {
+          detalles.forEach((d, idx) => {
+            const pts = parseFloat(d.puntaje) || 0;
+            totalEvaluacion += pts;
+            if (idx < 5) {
+              gruposMap[idG].criterios[idx] += pts;
+            }
+          });
+        }
 
         gruposMap[idG].total += totalEvaluacion;
-      });
+      }
 
-      // 3. Procesar y calcular el promedio por jurado evaluador
+      // 3. Promediar si hay varios jurados y armar el caché
       notasCache = Object.values(gruposMap).map(g => {
         const cant = g.juradosCount || 1;
         return {
           id_grupo: g.id_grupo,
           nombre_grupo: g.nombre_grupo,
           curso: g.curso,
-          producto: g.producto / cant,
-          stand_pitch: g.stand_pitch / cant,
-          base_datos: g.base_datos / cant,
-          defensa: g.defensa / cant,
-          carpeta_registro: g.carpeta_registro / cant,
+          crit1: g.criterios[0] / cant,
+          crit2: g.criterios[1] / cant,
+          crit3: g.criterios[2] / cant,
+          crit4: g.criterios[3] / cant,
+          crit5: g.criterios[4] / cant,
           total: g.total / cant
         };
       });
 
       filtrarNotas();
     } catch (err) {
-      console.error('Error al calcular promedios:', err);
+      console.error('Error al cargar notas:', err);
       document.getElementById('tabla-notas-body').innerHTML = 
         `<tr><td colspan="9" style="color:red;">Error al consultar las calificaciones en la base de datos</td></tr>`;
     }
@@ -341,17 +359,14 @@
     
     let filtrados = notasCache.filter(item => {
       if (cursoSeleccionado === 'todos') return true;
-      const c = String(item.curso || item.anio || item.id_curso || '');
-      return c.includes(cursoSeleccionado);
+      const c = String(item.curso || '');
+      return c === cursoSeleccionado;
     });
 
     filtrados.sort((a, b) => {
       const totA = parseFloat(a.total || 0);
       const totB = parseFloat(b.total || 0);
-      if (totB !== totA) return totB - totA;
-      const defA = parseFloat(a.defensa || 0);
-      const defB = parseFloat(b.defensa || 0);
-      return defB - defA;
+      return totB - totA;
     });
 
     const tbody = document.getElementById('tabla-notas-body');
@@ -366,13 +381,13 @@
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td style="font-weight: 700;">${index + 1}°</td>
-        <td style="text-align: left; font-weight: 600;">${item.nombre_grupo || 'Grupo ' + (item.id_grupo || '')}</td>
-        <td>${item.curso || '-'}° Año</td>
-        <td>${(parseFloat(item.producto) || 0).toFixed(1)}</td>
-        <td>${(parseFloat(item.stand_pitch) || 0).toFixed(1)}</td>
-        <td>${(parseFloat(item.base_datos) || 0).toFixed(1)}</td>
-        <td>${(parseFloat(item.defensa) || 0).toFixed(1)}</td>
-        <td>${(parseFloat(item.carpeta_registro) || 0).toFixed(1)}</td>
+        <td style="text-align: left; font-weight: 600;">${item.nombre_grupo}</td>
+        <td>${item.curso}° Año</td>
+        <td>${(parseFloat(item.crit1) || 0).toFixed(1)}</td>
+        <td>${(parseFloat(item.crit2) || 0).toFixed(1)}</td>
+        <td>${(parseFloat(item.crit3) || 0).toFixed(1)}</td>
+        <td>${(parseFloat(item.crit4) || 0).toFixed(1)}</td>
+        <td>${(parseFloat(item.crit5) || 0).toFixed(1)}</td>
         <td><strong>${(parseFloat(item.total) || 0).toFixed(1)}</strong></td>
       `;
       tbody.appendChild(tr);
