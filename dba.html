@@ -235,7 +235,8 @@
 
   <div class="nav-tablas">
     <button class="btn-tab activo" onclick="seleccionarTabla('competencias')">Competencias</button>
-    <button class="btn-tab" onclick="seleccionarTabla('cursos')">🏫 Cursos / Divisiones</button>
+    <!-- CORREGIDO AQUÍ: de 'cursos' a 'curso' -->
+    <button class="btn-tab" onclick="seleccionarTabla('curso')">🏫 Cursos / Divisiones</button>
     <button class="btn-tab" onclick="seleccionarTabla('jornadas')">Jornadas</button>
     <button class="btn-tab" onclick="seleccionarTabla('grupos')">Grupos</button>
     <button class="btn-tab" onclick="seleccionarTabla('usuarios')">Usuarios</button>
@@ -317,7 +318,7 @@
   function obtenerPK(tabla) {
     const pks = {
       'competencias': 'id_competencia',
-      'cursos': 'id_curso',
+      'curso': 'id_curso', // CORREGIDO AQUÍ: de 'cursos' a 'curso'
       'jornadas': 'id_jornada',
       'grupos': 'id_grupo',
       'usuarios': 'id_usuario',
