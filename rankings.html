@@ -166,7 +166,7 @@
                     <th style="width: 15%;">Posición</th>
                     <th style="width: 50%;">Equipo</th>
                     <th style="width: 15%;">Curso</th>
-                    <th style="width: 20%; text-align: right;">Puntaje Total</th>
+                    <th style="width: 20%; text-align: right;">Puntaje Promedio</th>
                 </tr>
             </thead>
             <tbody id="tabla-ranking">
@@ -268,9 +268,10 @@
                     .eq('id_grupo', grupo.id_grupo)
                     .in('estado', ['terminado', 'cerrado']);
 
-                let puntajeTotalGrupo = 0;
+                let sumaPuntajesGrupo = 0;
+                let cantidadJurados = evs ? evs.length : 0;
 
-                if (evs && evs.length > 0) {
+                if (cantidadJurados > 0) {
                     for (let ev of evs) {
                         const { data: detalles } = await db
                             .from('evaluacion_detalle')
@@ -279,20 +280,23 @@
 
                         if (detalles) {
                             detalles.forEach(d => {
-                                puntajeTotalGrupo += (d.puntaje || 0);
+                                sumaPuntajesGrupo += (parseFloat(d.puntaje) || 0);
                             });
                         }
                     }
                 }
 
+                // Calcular promedio entre los jurados que evaluaron al grupo
+                let promedioGrupo = cantidadJurados > 0 ? (sumaPuntajesGrupo / cantidadJurados) : 0;
+
                 rankingData.push({
                     nombre: grupo.nombre,
                     curso: grupo.id_curso || '-',
-                    puntaje: puntajeTotalGrupo
+                    puntaje: promedioGrupo
                 });
             }
 
-            // Ordenar de mayor a menor puntaje
+            // Ordenar de mayor a menor promedio
             rankingData.sort((a, b) => b.puntaje - a.puntaje);
             rankingCache = rankingData;
 
@@ -325,7 +329,7 @@
                     <td style="font-weight: 700; color: #2563eb;">#${index + 1}</td>
                     <td style="font-weight: 600;">${item.nombre}</td>
                     <td>${item.curso}° Año</td>
-                    <td style="text-align: right; font-weight: 700; color: #16a34a;">${item.puntaje} pts</td>
+                    <td style="text-align: right; font-weight: 700; color: #16a34a;">${item.puntaje.toFixed(1)} pts</td>
                 </tr>
             `;
         });
