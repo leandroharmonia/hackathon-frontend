@@ -80,7 +80,8 @@
         try {
             const { data: competencias, error } = await db
                 .from('competencias')
-                .select('id_competencia, nombre');
+                .select('id_competencia, nombre')
+                .order('id_competencia', { ascending: false });
 
             if (error) throw error;
 
@@ -93,11 +94,11 @@
                     select.appendChild(option);
                 });
             } else {
-                select.innerHTML = '<option value="1">Hackathon 2026</option>';
+                select.innerHTML = '<option value="">No hay competencias</option>';
             }
         } catch (err) {
             console.error("Error al cargar competencias:", err);
-            select.innerHTML = '<option value="1">Hackathon 2026</option>';
+            select.innerHTML = '<option value="">Error al cargar</option>';
         }
     }
 
@@ -109,10 +110,18 @@
         const divGrupal = document.getElementById('puntaje-grupal');
         const h4Grupo = document.getElementById('nombre-grupo');
         const lblPromedioFinal = document.getElementById('promedio-grupal-final');
-        const idCompetenciaFiltro = document.getElementById('selectCompetencia').value || 1;
+        const idCompetenciaFiltro = document.getElementById('selectCompetencia').value;
+
+        if (!idCompetenciaFiltro) {
+            h4Grupo.textContent = "Actividad: Seleccione una competencia";
+            divIndividual.innerHTML = '<p style="color: #94a3b8;">Seleccione una competencia para ver su calificación.</p>';
+            divGrupal.innerHTML = '<p style="color: #94a3b8;">Seleccione una competencia para ver las calificaciones.</p>';
+            lblPromedioFinal.textContent = "-- / 100";
+            return;
+        }
 
         try {
-            // Buscar en grupos el que pertenezca a la competencia seleccionada y donde esté el alumno
+            // Buscar los grupos del alumno
             const { data: relIntegrantes, error: errRel } = await db
                 .from('grupo_integrantes')
                 .select('id_grupo, grupos(id_grupo, nombre, id_competencia)')
@@ -126,14 +135,23 @@
                 return;
             }
 
-            // Filtrar el grupo que coincida con la competencia seleccionada
-            let grupoValido = relIntegrantes.find(r => r.grupos && r.grupos.id_competencia == idCompetenciaFiltro) || relIntegrantes[0];
+            // Filtrar estrictamente el grupo que pertenezca a la competencia seleccionada actual
+            let grupoValido = relIntegrantes.find(r => r.grupos && String(r.grupos.id_competencia) === String(idCompetenciaFiltro));
+
+            if (!grupoValido) {
+                h4Grupo.textContent = "Actividad: Sin grupo en esta competencia";
+                divIndividual.innerHTML = '<p style="color: #94a3b8;">No estás participando en esta competencia específica.</p>';
+                divGrupal.innerHTML = '<p style="color: #94a3b8;">Sin calificaciones para esta competencia.</p>';
+                lblPromedioFinal.textContent = "-- / 100";
+                return;
+            }
+
             const idGrupo = grupoValido.id_grupo;
             const nombreGrupo = grupoValido.grupos ? grupoValido.grupos.nombre : 'Equipo';
 
             h4Grupo.textContent = `Actividad: Evaluaciones para el equipo "${nombreGrupo}"`;
 
-            // Cargar puntaje individual (Defensa Individual)
+            // Cargar puntaje individual (Defensa Individual) vinculado a esta competencia o grupo
             const { data: notaInd } = await db
                 .from('defensa_individual')
                 .select('*')
@@ -160,7 +178,7 @@
                 `;
             }
 
-            // Cargar Evaluaciones Grupales y el nombre del Jurado
+            // Cargar Evaluaciones Grupales exclusivamente para este grupo de la competencia seleccionada
             const { data: evaluaciones, error: errEval } = await db
                 .from('evaluaciones')
                 .select('id_evaluacion, estado, comentario_general, id_jurado')
@@ -169,7 +187,7 @@
             if (errEval) throw errEval;
 
             if (!evaluaciones || evaluaciones.length === 0) {
-                divGrupal.innerHTML = '<p style="color: #94a3b8;">Tu equipo aún no ha recibido calificaciones grupales de los jurados.</p>';
+                divGrupal.innerHTML = '<p style="color: #94a3b8;">Tu equipo aún no ha recibido calificaciones grupales de los jurados en esta competencia.</p>';
                 lblPromedioFinal.textContent = "0.00 / 100";
             } else {
                 divGrupal.innerHTML = '';
