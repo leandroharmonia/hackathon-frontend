@@ -293,7 +293,7 @@
       if (!idCompetenciaActiva) {
         idCompetenciaActiva = comps[0].id_competencia;
         select.value = idCompetenciaActiva;
-        actualizarNombreCompetencia(idCompetenciaActiva);
+        await actualizarNombreCompetencia(idCompetenciaActiva);
         cargarNotas(idCompetenciaActiva);
       }
     }
@@ -308,6 +308,7 @@
     } else {
       document.getElementById('tabla-notas-body').innerHTML = `<tr><td colspan="9">Seleccione una competencia para ver las notas.</td></tr>`;
       document.getElementById('subtitulo-competencia').textContent = '';
+      notasCache = [];
     }
   }
 
@@ -324,7 +325,6 @@
     tbody.innerHTML = `<tr><td colspan="9">Cargando datos desde Supabase...</td></tr>`;
 
     try {
-      // 1. Buscar grupos de esta competencia
       const { data: gruposComp, error: errGruposComp } = await db
         .from('grupos')
         .select('id_grupo, nombre, id_curso')
@@ -351,7 +351,6 @@
         };
       });
 
-      // 2. Consultar evaluaciones cerradas para estos grupos
       const { data: evalData, error: evalErr } = await db
         .from('evaluaciones')
         .select('id_evaluacion, id_grupo, estado')
@@ -456,13 +455,11 @@
     const anioActual = new Date().getFullYear();
     const nombreComp = nombreCompetenciaActiva ? nombreCompetenciaActiva.trim() : "General";
     
-    // Cambiar dinámicamente el título de la página para que el navegador asigne ese nombre al PDF al imprimir
     const tituloOriginal = document.title;
     document.title = `Notas Cargadas ${anioActual}-${nombreComp}`;
     
     window.print();
 
-    // Restaurar el título original tras un momento
     setTimeout(() => {
       document.title = tituloOriginal;
     }, 1000);
