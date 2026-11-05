@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema de Evaluación - Vista Alumno</title>
+  <title>Sistema de Evaluación - Alumno</title>
   <style>
     * {
       box-sizing: border-box;
@@ -13,31 +13,36 @@
     }
 
     body {
-      background-color: #dbeafe;
+      background-color: #f0f4f8;
+      /* Recuperamos la ilustración/siluetas de fondo de la interfaz original */
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(30, 64, 175, 0.05) 0%, transparent 40%);
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       padding: 20px;
+      position: relative;
     }
 
+    /* Contenedor principal idéntico al diseño original */
     .card-container {
-      background: #eef6ff;
+      background: #ffffff;
       width: 100%;
-      max-width: 650px;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-      padding: 24px;
-      border: 1px solid #bfdbfe;
+      max-width: 580px;
+      border-radius: 20px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+      border: 1px solid #e2e8f0;
+      position: relative;
+      z-index: 10;
     }
 
-    .header-section {
-      background: #ffffff;
-      padding: 16px 20px;
-      border-radius: 12px;
-      border-left: 5px solid #2563eb;
+    .header-box {
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 16px;
       margin-bottom: 20px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
     }
 
     .subtitle {
@@ -50,142 +55,165 @@
     }
 
     .main-title {
-      font-size: 1.4rem;
+      font-size: 1.35rem;
       color: #1e3a8a;
       font-weight: 800;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
     }
 
-    .info-row {
-      font-size: 0.88rem;
-      color: #475569;
-      margin-top: 4px;
+    .filter-group {
+      margin-bottom: 12px;
     }
 
-    .info-row strong {
-      color: #1e293b;
-    }
-
-    .filter-box {
-      margin-top: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-
-    .filter-box label {
+    .filter-group label {
+      display: block;
       font-size: 0.8rem;
       font-weight: 600;
-      color: #334155;
+      color: #475569;
+      margin-bottom: 4px;
     }
 
-    .select-input {
+    .select-competencia {
       width: 100%;
-      padding: 8px 12px;
+      padding: 9px 12px;
       border: 1px solid #cbd5e1;
       border-radius: 8px;
       background-color: #f8fafc;
-      color: #0f172a;
+      color: #1e293b;
+      font-size: 0.88rem;
       font-weight: 500;
       outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .select-competencia:focus {
+      border-color: #2563eb;
+    }
+
+    .info-alumno {
+      font-size: 0.85rem;
+      color: #475569;
+      margin-top: 6px;
+    }
+
+    .info-alumno strong {
+      color: #1e293b;
     }
 
     .section-title {
-      font-size: 1.05rem;
+      font-size: 0.95rem;
       color: #1e3a8a;
       font-weight: 700;
-      margin: 20px 0 10px 0;
+      margin: 18px 0 10px 0;
     }
 
-    .eval-box {
-      background: #ffffff;
+    /* Cajas contenedoras idénticas a la referencia */
+    .content-box {
+      border: 2px solid #93c5fd;
+      border-radius: 12px;
+      padding: 16px;
+      background-color: #ffffff;
+      margin-bottom: 15px;
+    }
+
+    .empty-state {
+      color: #dc2626;
+      font-size: 0.88rem;
+      text-align: center;
+      padding: 8px;
+    }
+
+    .eval-card {
+      background: #f8fafc;
       border-left: 4px solid #2563eb;
       border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 12px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      padding: 12px 14px;
+      margin-bottom: 10px;
     }
 
-    .jurado-header {
+    .eval-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-weight: 700;
       color: #1e293b;
-      margin-bottom: 8px;
-      border-bottom: 1px dashed #e2e8f0;
-      padding-bottom: 6px;
-    }
-
-    .criterios-list {
-      list-style: none;
-      margin-bottom: 10px;
-    }
-
-    .criterio-item {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.85rem;
-      color: #475569;
-      margin-bottom: 4px;
-    }
-
-    .comentario {
-      font-size: 0.82rem;
-      color: #64748b;
-      font-style: italic;
-      background: #f8fafc;
-      padding: 8px;
-      border-radius: 6px;
-      margin-top: 6px;
+      font-size: 0.88rem;
+      margin-bottom: 6px;
     }
 
     .badge-score {
       background-color: #dbeafe;
       color: #1e40af;
-      padding: 3px 8px;
+      padding: 2px 8px;
       border-radius: 6px;
+      font-size: 0.82rem;
       font-weight: 700;
-      font-size: 0.85rem;
+    }
+
+    .comentario-text {
+      font-size: 0.82rem;
+      color: #64748b;
+      font-style: italic;
+      background: #ffffff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+      margin-top: 4px;
+    }
+
+    .criterios-ul {
+      list-style: none;
+      margin: 8px 0;
+      padding-left: 0;
+    }
+
+    .criterio-li {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.81rem;
+      color: #475569;
+      padding: 2px 0;
+      border-bottom: 1px dashed #e2e8f0;
     }
 
     .summary-card {
-      background: #ffffff;
-      padding: 16px;
-      border-radius: 12px;
-      border: 1px solid #bfdbfe;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 14px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 15px;
+      margin-top: 10px;
     }
 
-    .summary-label {
-      font-size: 0.95rem;
+    .summary-title {
+      font-size: 0.9rem;
       font-weight: 700;
       color: #1e3a8a;
     }
 
     .summary-value {
-      font-size: 1.4rem;
+      font-size: 1.2rem;
       font-weight: 800;
       color: #16a34a;
     }
 
     .btn-logout {
-      margin-top: 24px;
-      background-color: #ffe4e6;
-      color: #e11d48;
-      border: 1px solid #fecdd3;
-      padding: 8px 18px;
+      margin-top: 20px;
+      background-color: #fee2e2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+      padding: 8px 16px;
       border-radius: 20px;
       font-weight: 600;
+      font-size: 0.85rem;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: background 0.2s;
     }
 
     .btn-logout:hover {
-      background-color: #fecdd3;
+      background-color: #fecaca;
     }
   </style>
 </head>
@@ -193,150 +221,156 @@
 
   <div class="card-container">
     
-    <!-- Encabezado con Filtro de Competencias -->
-    <div class="header-section">
-      <div class="subtitle">Sistema de Evaluación</div>
+    <!-- Encabezado con selector de Competencia y datos del usuario -->
+    <div class="header-box">
+      <div class="subtitle">SISTEMA DE EVALUACIÓN</div>
       <div class="main-title">Evaluación personal y grupal</div>
-      
-      <div class="filter-box">
-        <label for="competenciaSelect">Seleccionar Competencia / Edición:</label>
-        <select id="competenciaSelect" class="select-input" onchange="cargarDatosAlumno()">
-          <option value="1">Olimpiadas de Informática Escolar - Hackathon 2026 (7° año)</option>
+
+      <!-- Selector de Competencia previo a mostrar los datos -->
+      <div class="filter-group">
+        <label for="selectCompetencia">Seleccionar Competencia:</label>
+        <select id="selectCompetencia" class="select-competencia" onchange="cambiarCompetencia()">
+          <option value="1">Olimpiadas de Informática Escolar - Hackathon 2026</option>
+          <!-- Aquí puedes poblar más competencias desde tu BD si existieran -->
         </select>
       </div>
 
-      <div style="margin-top: 12px; border-top: 1px solid #f1f5f9; padding-top: 8px;">
-        <div class="info-row"><strong>Alumno:</strong> <span id="nombreAlumno">Cargando...</span></div>
-        <div class="info-row"><strong>Grupo Asignado:</strong> <span id="nombreGrupo">Cargando...</span></div>
-      </div>
+      <div class="info-alumno"><strong>Alumno:</strong> <span id="lblNombreAlumno">Cargando...</span></div>
+      <div class="info-alumno"><strong>Grupo Asignado:</strong> <span id="lblGrupoAlumno">Cargando...</span></div>
     </div>
 
     <!-- Puntaje Individual -->
-    <div class="section-title">Puntaje individual (Defensa Oral)</div>
-    <div id="contenedorIndividual"></div>
-
-    <!-- Puntaje Grupal -->
-    <div class="section-title">Puntaje grupal por Jurado</div>
-    <div id="contenedorGrupal"></div>
-
-    <!-- Resumen y Promedio Final -->
-    <div class="section-title">Resumen y Promedio Final (Exclusivo Grupal)</div>
-    <div class="summary-card">
-      <span class="summary-label">Promedio General Grupal:</span>
-      <span class="summary-value" id="promedioGrupalText">-- / 100</span>
+    <div class="section-title">Puntaje individual</div>
+    <div class="content-box" id="boxIndividual">
+      <div class="empty-state">Cargando puntajes individuales...</div>
     </div>
 
-    <button class="btn-logout" onclick="alert('Sesión cerrada')">Cerrar Sesión</button>
+    <!-- Puntaje Grupal -->
+    <div class="section-title">Puntaje grupal</div>
+    <div class="content-box" id="boxGrupal">
+      <div class="empty-state">Cargando calificaciones grupales...</div>
+    </div>
+
+    <!-- Resumen y Promedio Final -->
+    <div class="section-title">Resumen y Promedio Final</div>
+    <div class="summary-card">
+      <span class="summary-title">Promedio Grupal Final:</span>
+      <span class="summary-value" id="lblPromedioFinal">-- / 100</span>
+    </div>
+
+    <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
   </div>
 
   <script>
-    // Simulación de respuesta basada en las tablas de PostgreSQL (ediciones, evaluaciones, evaluacion_detalle, defensa_individual)
-    const datosBD = {
-      alumno: "Leandro Sebastian Ortiz",
-      grupo: "Grupo 1 - SIGEM",
-      edicionId: 1,
-      defensasIndividuales: [
-        { jurado: "Prof. María Giménez", puntaje: 14.5, comentario: "Excelente dominio conceptual durante el pitch individual." },
-        { jurado: "Ing. Carlos Gómez", puntaje: 13.0, comentario: "Buena defensa, respondió con solidez a las preguntas teóricas." }
-      ],
-      evaluacionesGrupales: [
-        {
-          idEvaluacion: 101,
-          jurado: "Prof. María Giménez",
-          criterios: [
-            { nombre: "Arquitectura y Modelo de Datos", puntaje: 24.0, max: 25 },
-            { nombre: "Interfaz y Experiencia de Usuario", puntaje: 14.0, max: 15 },
-            { nombre: "Funcionalidad Backend y Lógica", puntaje: 18.5, max: 20 },
-            { nombre: "Seguridad, Roles y Cierre", puntaje: 23.0, max: 25 },
-            { nombre: "Exposición Oral y Pitch", puntaje: 14.0, max: 15 }
-          ],
-          comentarioGeneral: "Un trabajo muy estructurado, la arquitectura relacional se encuentra impecable."
-        },
-        {
-          idEvaluacion: 102,
-          jurado: "Ing. Carlos Gómez",
-          criterios: [
-            { nombre: "Arquitectura y Modelo de Datos", puntaje: 22.5, max: 25 },
-            { nombre: "Interfaz y Experiencia de Usuario", puntaje: 13.0, max: 15 },
-            { nombre: "Funcionalidad Backend y Lógica", puntaje: 17.0, max: 20 },
-            { nombre: "Seguridad, Roles y Cierre", puntaje: 21.0, max: 25 },
-            { nombre: "Exposición Oral y Pitch", puntaje: 13.5, max: 15 }
-          ],
-          comentarioGeneral: "Excelente implementación del backend y control de acceso."
-        }
-      ]
-    };
+    // FUNCIÓN PARA CONECTAR A TU BASE DE DATOS REAL (Backend API)
+    async function cargarDatosDesdeBD() {
+      const idCompetenciaSeleccionada = document.getElementById('selectCompetencia').value;
+      
+      // NOTA PARA TI: Aquí harás la llamada a tu servidor backend (Node.js/PHP) conectado a PostgreSQL.
+      // Ejemplo: const response = await fetch(`/api/alumno/evaluaciones?competencia=${idCompetenciaSeleccionada}`);
+      // const data = await response.json();
 
-    function cargarDatosAlumno() {
-      // 1. Mostrar datos de perfil y grupo
-      document.getElementById('nombreAlumno').innerText = datosBD.alumno;
-      document.getElementById('nombreGrupo').innerText = datosBD.grupo;
+      // --- SIMULACIÓN DE DATOS DINÁMICOS SEGÚN EL USUARIO LOGUEADO (Ej: Lara Palacios) ---
+      // Cuando lo conectes a tu BD, estos valores vendrán de la tabla 'usuarios', 'grupos', 'defensa_individual' y 'evaluaciones'.
+      const dataBackendReal = {
+        nombreAlumno: "Lara Palacios", // Dinámico según la sesión iniciada
+        nombreGrupo: "Grupo 1 - SIGEM",
+        defensas: [
+          { jurado: "Jurado Evaluador 1", puntaje: 14.0, comentario: "Buena defensa y manejo del rol asignado." }
+        ],
+        grupales: [
+          {
+            jurado: "Jurado Evaluador 1",
+            criterios: [
+              { nombre: "Arquitectura y Modelo de Datos", puntaje: 23.0, max: 25 },
+              { nombre: "Interfaz y Experiencia de Usuario", puntaje: 14.0, max: 15 },
+              { nombre: "Funcionalidad Backend y Lógica", puntaje: 19.0, max: 20 },
+              { nombre: "Seguridad, Roles y Cierre", puntaje: 24.0, max: 25 },
+              { nombre: "Exposición Oral y Pitch", puntaje: 14.0, max: 15 }
+            ],
+            comentarioGeneral: "Excelente trabajo en la integración del SIGEM."
+          }
+        ]
+      };
 
-      // 2. Renderizar Puntajes Individuales
-      const contenedorIndiv = document.getElementById('contenedorIndividual');
-      contenedorIndiv.innerHTML = '';
+      // 1. Pintar Nombre y Grupo real
+      document.getElementById('lblNombreAlumno').innerText = dataBackendReal.nombreAlumno;
+      document.getElementById('lblGrupoAlumno').innerText = dataBackendReal.nombreGrupo;
 
-      if (datosBD.defensasIndividuales.length === 0) {
-        contenedorIndiv.innerHTML = `<div class="eval-box" style="color: #ef4444;">Sin evaluaciones individuales registradas.</div>`;
+      // 2. Pintar Puntaje Individual
+      const boxIndiv = document.getElementById('boxIndividual');
+      boxIndiv.innerHTML = '';
+      if (!dataBackendReal.defensas || dataBackendReal.defensas.length === 0) {
+        boxIndiv.innerHTML = `<div class="empty-state">No estás asignado a ningún grupo todavía o no hay notas individuales.</div>`;
       } else {
-        datosBD.defensasIndividuales.forEach(defensa => {
-          contenedorIndiv.innerHTML += `
-            <div class="eval-box">
-              <div class="jurado-header">
-                <span>Evaluador: ${defensa.jurado}</span>
-                <span class="badge-score">${defensa.puntaje} pts</span>
+        dataBackendReal.defensas.forEach(d => {
+          boxIndiv.innerHTML += `
+            <div class="eval-card">
+              <div class="eval-header">
+                <span>Evaluador: ${d.jurado}</span>
+                <span class="badge-score">${d.puntaje} pts</span>
               </div>
-              <div class="comentario">"${defensa.comentario}"</div>
+              <div class="comentario-text">"${d.comentario}"</div>
             </div>
           `;
         });
       }
 
-      // 3. Renderizar Evaluaciones Grupales y calcular Promedio
-      const contenedorGrup = document.getElementById('contenedorGrupal');
-      contenedorGrup.innerHTML = '';
+      // 3. Pintar Puntaje Grupal y Calcular Promedio exclusivo grupal
+      const boxGrup = document.getElementById('boxGrupal');
+      boxGrup.innerHTML = '';
+      
+      let sumaTotalGrupal = 0;
+      let totalEvaluadoresGrupales = dataBackendReal.grupales.length;
 
-      let sumaTotalesGrupales = 0;
-      const totalJurados = datosBD.evaluacionesGrupales.length;
-
-      if (totalJurados === 0) {
-        contenedorGrup.innerHTML = `<div class="eval-box" style="color: #ef4444;">Sin calificaciones grupales disponibles.</div>`;
-        document.getElementById('promedioGrupalText').innerText = "Sin datos";
+      if (totalEvaluadoresGrupales === 0) {
+        boxGrup.innerHTML = `<div class="empty-state">Sin calificaciones grupales disponibles.</div>`;
+        document.getElementById('lblPromedioFinal').innerText = "Sin datos";
       } else {
-        datosBD.evaluacionesGrupales.forEach(evaluacion => {
-          // Suma de los 5 criterios para esta evaluación
-          const totalEvaluacion = evaluacion.criterios.reduce((acc, c) => acc + c.puntaje, 0);
-          sumaTotalesGrupales += totalEvaluacion;
+        dataBackendReal.grupales.forEach(ev => {
+          // Suma de los criterios de la rúbrica para este jurado
+          const subtotalEvaluacion = ev.criterios.reduce((acc, c) => acc + c.puntaje, 0);
+          sumaTotalGrupal += subtotalEvaluacion;
 
-          let htmlCriterios = evaluacion.criterios.map(c => `
-            <li class="criterio-item">
+          let listaCriteriosHtml = ev.criterios.map(c => `
+            <li class="criterio-li">
               <span>${c.nombre}</span>
               <strong>${c.puntaje} / ${c.max}</strong>
             </li>
           `).join('');
 
-          contenedorGrup.innerHTML += `
-            <div class="eval-box">
-              <div class="jurado-header">
-                <span>Jurado: ${evaluacion.jurado}</span>
-                <span class="badge-score">Total: ${totalEvaluacion.toFixed(2)} pts</span>
+          boxGrup.innerHTML += `
+            <div class="eval-card">
+              <div class="eval-header">
+                <span>Jurado: ${ev.jurado}</span>
+                <span class="badge-score">Total Jurado: ${subtotalEvaluacion.toFixed(2)} pts</span>
               </div>
-              <ul class="criterios-list">
-                ${htmlCriterios}
+              <ul class="criterios-ul">
+                ${listaCriteriosHtml}
               </ul>
-              <div class="comentario"><strong>Devolución:</strong> "${evaluacion.comentarioGeneral}"</div>
+              <div class="comentario-text"><strong>Comentario:</strong> "${ev.comentarioGeneral}"</div>
             </div>
           `;
         });
 
-        // 4. Calcular el Promedio General Grupal (Equivalente a la VISTA SQL 'vista_ranking_grupos')
-        const promedioFinal = sumaTotalesGrupales / totalJurados;
-        document.getElementById('promedioGrupalText').innerText = `${promedioFinal.toFixed(2)} / 100`;
+        // Promedio exclusivo grupal (promediando las notas cerradas de los jurados)
+        const promedioFinalGrupal = sumaTotalGrupal / totalEvaluadoresGrupales;
+        document.getElementById('lblPromedioFinal').innerText = `${promedioFinalGrupal.toFixed(2)} / 100`;
       }
     }
 
-    // Cargar automáticamente al entrar a la página
-    document.addEventListener('DOMContentLoaded', cargarDatosAlumno);
+    function cambiarCompetencia() {
+      // Al cambiar la competencia en el selector, recarga los datos correspondientes
+      cargarDatosDesdeBD();
+    }
+
+    // Ejecutar al cargar la página
+    document.addEventListener('DOMContentLoaded', cargarDatosDesdeBD);
+
+    function cerrarSesion() {
+      alert('Sesión cerrada correctamente.');
+      // window.location.href = 'login.html';
+    }
   </script>
 </body>
 </html>
